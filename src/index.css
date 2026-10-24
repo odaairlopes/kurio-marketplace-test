@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* Tokens extraídos das variáveis do Figma (KURIO). */
+@theme {
+  --font-sans: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink: #140d0a;
+  --color-surface: #241612;
+  --color-surface-dark: #38220f;
+  --color-brand: #d28a4c;
+  --color-accent-text: #e89b55;
+  --color-fg: #f5f1eb;
+  --color-fg-strong: #f7f3ec;
+  --color-fg-muted: #cfb28c;
+  --color-brand-secondary: #b39463;
+  --color-line: #3f2319;
+  --color-line-soft: #55321f;
+  --color-elevated: #fbfbfb;
+  --color-danger: #ff9b8f;
+  --color-success: #9fd8a8;
+  --color-warning: #f2c879;
+
+  /* Aliases shadcn/ui */
+  --color-background: var(--color-ink);
+  --color-foreground: var(--color-fg);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-fg);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-fg);
+  --color-primary: var(--color-brand);
+  --color-primary-foreground: var(--color-ink);
+  --color-secondary: var(--color-surface-dark);
+  --color-secondary-foreground: var(--color-fg);
+  --color-muted: var(--color-surface);
+  --color-muted-foreground: var(--color-fg-muted);
+  --color-accent: var(--color-surface-dark);
+  --color-accent-foreground: var(--color-fg);
+  --color-destructive: var(--color-danger);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-soft);
+  --color-ring: var(--color-accent-text);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+
+  --text-display: 43px;
+  --text-display--line-height: 1.25;
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  @keyframes shimmer {
+    0% {
+      background-position: 150% 0;
+    }
+    100% {
+      background-position: -50% 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-ink text-fg font-sans antialiased;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  * {
+    border-color: var(--color-line);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent-text);
+    outline-offset: 2px;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  img {
+    max-width: 100%;
+  }
+  /* fieldset tem min-width: min-content por padrão e estoura grids no mobile */
+  fieldset {
+    min-width: 0;
+  }
+}
+
+@layer components {
+  .container-kurio {
+    @apply mx-auto w-full max-w-[1200px] px-4 md:px-8 xl:px-0;
+  }
+  .skeleton {
+    background-color: var(--color-surface);
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(232, 155, 85, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    @apply animate-shimmer rounded-md;
+  }
+  .sr-only-focusable:not(:focus) {
+    @apply sr-only;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background-image: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
