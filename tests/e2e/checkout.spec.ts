@@ -170,10 +170,11 @@ test.describe("Compra", () => {
     await addToCart(page, "cosmic-bloom-118");
     await gotoApp(page, "/cart");
     await page.getByTestId("go-to-checkout").click();
-    await expect(page).toHaveURL(/\/login\?redirect=%2Fcheckout/);
-    await page.getByLabel("E-mail").fill(USERS.ana.email);
-    await page.getByLabel("Senha", { exact: true }).fill(USERS.ana.password);
-    await page.getByRole("button", { name: "Entrar", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Entrar" });
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel("E-mail").fill(USERS.ana.email);
+    await dialog.getByLabel("Senha", { exact: true }).fill(USERS.ana.password);
+    await dialog.getByRole("button", { name: "Entrar", exact: true }).click();
     await expect(page).toHaveURL("/checkout");
     await expect(page.getByText("Cosmic Bloom #118")).toBeVisible();
   });

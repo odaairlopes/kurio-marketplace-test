@@ -46,8 +46,9 @@ test.describe("Acessibilidade", () => {
 
   test("erros de formulário associados aos campos", async ({ page }) => {
     await gotoApp(page, "/login");
-    await page.getByRole("button", { name: "Entrar", exact: true }).click();
-    const email = page.getByLabel("E-mail");
+    const modal = page.getByRole("dialog");
+    await modal.getByRole("button", { name: "Entrar", exact: true }).click();
+    const email = modal.getByLabel("E-mail");
     await expect(email).toHaveAttribute("aria-invalid", "true");
     const describedBy = await email.getAttribute("aria-describedby");
     expect(describedBy).toBeTruthy();

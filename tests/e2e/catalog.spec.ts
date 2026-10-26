@@ -6,27 +6,31 @@ test.describe("Catálogo", () => {
   }) => {
     await gotoApp(page, "/");
     const status = page.getByTestId("results-status");
-    await expect(status).toHaveText("48 resultados");
+    await expect(status).toHaveText("36 resultados");
 
     // Busca compõe a URL
     await page
+      .getByRole("button", { name: "Buscar NFTs", exact: true })
+      .click();
+    await page
       .getByLabel("Buscar NFTs por nome, criador ou token")
       .fill("nomad");
+    await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/q=nomad/);
     await expect(page.getByTestId("nft-card").first()).toContainText(/Nomad/i);
     const searchCount = Number((await status.textContent())!.split(" ")[0]);
-    expect(searchCount).toBeLessThan(48);
+    expect(searchCount).toBeLessThan(36);
     await page.getByRole("button", { name: /Remover filtro “nomad”/ }).click();
-    await expect(status).toHaveText("48 resultados");
+    await expect(status).toHaveText("36 resultados");
 
     // Filtros combináveis (AND entre grupos) e reinício da paginação
     await page.getByRole("button", { name: "Página 2" }).click();
     await expect(page).toHaveURL(/page=2/);
-    await page.getByRole("checkbox", { name: /Arte digital/ }).click();
+    await page.getByRole("button", { name: /^Arte digital/ }).click();
     await expect(page).toHaveURL(/collections=arte-digital/);
     await expect(page).not.toHaveURL(/page=2/);
     const onlyCollection = Number((await status.textContent())!.split(" ")[0]);
-    await page.getByRole("checkbox", { name: /Ethereum/ }).click();
+    await page.getByRole("button", { name: /^Ethereum/ }).click();
     await expect(page).toHaveURL(/networks=ethereum/);
     await expect(async () => {
       const combined = Number((await status.textContent())!.split(" ")[0]);
@@ -36,21 +40,23 @@ test.describe("Catálogo", () => {
       await expect(card).toContainText("Ethereum");
 
     // Faixa de preço aplicada pelo botão
-    await page.getByLabel("Preço máximo em ETH").fill("2");
+    const maxThumb = page.getByRole("slider", { name: "Preço máximo" });
+    await maxThumb.focus();
+    await page.keyboard.press("PageDown");
     await page.getByRole("button", { name: "Aplicar", exact: true }).click();
-    await expect(page).toHaveURL(/maxPrice=2/);
+    await expect(page).toHaveURL(/maxPrice=/);
 
     // Histórico restaura o estado anterior
     await page.goBack();
     await expect(page).not.toHaveURL(/maxPrice/);
     await expect(
-      page.getByRole("checkbox", { name: /Ethereum/ }),
-    ).toBeChecked();
+      page.getByRole("button", { name: /^Ethereum/ }),
+    ).toHaveAttribute("aria-pressed", "true");
     await page.goBack();
     await expect(page).not.toHaveURL(/networks/);
     await expect(
-      page.getByRole("checkbox", { name: /Ethereum/ }),
-    ).not.toBeChecked();
+      page.getByRole("button", { name: /^Ethereum/ }),
+    ).toHaveAttribute("aria-pressed", "false");
 
     // Ordenação
     await gotoApp(page, "/");
@@ -126,7 +132,7 @@ test.describe("Catálogo", () => {
     ).toBeVisible();
     await page.getByRole("button", { name: "Limpar filtros" }).click();
     await expect(page.getByTestId("results-status")).toHaveText(
-      "48 resultados",
+      "36 resultados",
     );
   });
 });

@@ -136,6 +136,10 @@ const FIGMA_FIXED: Array<{
   },
   { name: "Cosmic Bloom #118", price: "1.29", collection: "arte-3d" },
   { name: "Violet Nomad #314", price: "1.39", collection: "colecionaveis" },
+  { name: "Ivory Baron #088", price: "1.79", collection: "fotografia" },
+  { name: "Golden Beat #207", price: "0.99", collection: "musica" },
+  { name: "Golden Echo #183", price: "0.69", collection: "jogos" },
+  { name: "Golden Signal #160", price: "0.39", collection: "utilidade" },
 ];
 
 const ART_COUNT = 24;
@@ -163,7 +167,7 @@ function priceFor(rand: () => number): string {
   return (Math.round(value * 100) / 100).toFixed(2);
 }
 
-export const NFT_COUNT = 48;
+export const NFT_COUNT = 36;
 
 export function buildNfts(): NftRecord[] {
   const rand = mulberry32(20261023);
@@ -235,9 +239,11 @@ export function buildNfts(): NftRecord[] {
       description: DESCRIPTIONS[collection],
       images,
       editions,
-      previousPrice:
-        fixed?.previous ??
-        (i % 9 === 4 ? (Number(basePrice) * 1.15).toFixed(2) : null),
+      previousPrice: fixed
+        ? (fixed.previous ?? null)
+        : i % 9 === 4
+          ? (Number(basePrice) * 1.15).toFixed(2)
+          : null,
       rating: {
         average: Math.round((3.6 + rand() * 1.4) * 10) / 10,
         count: i === 0 ? 19 : ratingCount,

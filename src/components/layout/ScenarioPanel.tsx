@@ -70,7 +70,7 @@ export function ScenarioPanel() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
-          className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border border-line-soft bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-muted shadow-lg hover:text-accent-text"
+          className="fixed bottom-24 left-4 z-40 md:bottom-4 flex items-center gap-2 rounded-full border border-line-soft bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-muted shadow-lg hover:text-accent-text"
           data-testid="scenario-panel-trigger"
         >
           <FlaskConical className="size-4" aria-hidden /> Cenários

@@ -72,14 +72,14 @@ export const Slider = React.forwardRef<
       )}
       {...props}
     >
-      <SliderPrimitive.Track className="relative h-1 w-full grow overflow-hidden rounded-full bg-line-soft">
+      <SliderPrimitive.Track className="relative h-[3px] w-full grow overflow-hidden rounded-full bg-primary/45">
         <SliderPrimitive.Range className="absolute h-full bg-primary" />
       </SliderPrimitive.Track>
       {Array.from({ length: count }).map((_, i) => (
         <SliderPrimitive.Thumb
           key={i}
           aria-label={thumbLabels[i]}
-          className="block size-5 rounded-full border-2 border-primary bg-fg shadow transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/50"
+          className="block size-4 rounded-full border-2 border-[#a8672f] bg-primary shadow transition-colors focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/50"
         />
       ))}
     </SliderPrimitive.Root>

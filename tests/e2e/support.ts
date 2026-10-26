@@ -122,10 +122,11 @@ export async function login(
   path = "/login",
 ) {
   await gotoApp(page, path);
-  await page.getByLabel("E-mail").fill(user.email);
-  await page.getByLabel("Senha", { exact: true }).fill(user.password);
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page).not.toHaveURL(/\/login/);
+  const dialog = page.getByRole("dialog");
+  await dialog.getByLabel("E-mail").fill(user.email);
+  await dialog.getByLabel("Senha", { exact: true }).fill(user.password);
+  await dialog.getByRole("button", { name: "Entrar", exact: true }).click();
+  await expect(dialog).toBeHidden();
 }
 
 export async function addToCart(page: Page, nftId: string, quantity = 1) {

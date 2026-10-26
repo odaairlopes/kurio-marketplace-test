@@ -1,4 +1,4 @@
-import type { QueryClient } from "@tanstack/react-query";
+﻿import type { QueryClient } from "@tanstack/react-query";
 import {
   createRootRouteWithContext,
   createRoute,
@@ -16,6 +16,7 @@ import { RootLayout } from "@/components/layout/RootLayout";
 import { NotFound, RouteError } from "@/components/states";
 import { api } from "@/api/endpoints";
 import { ApiError } from "@/api/http";
+import { authModal } from "@/lib/auth-modal";
 import { sessionStore } from "@/lib/session";
 import { HomePage } from "@/pages/HomePage";
 
@@ -109,13 +110,11 @@ async function requireAuth({
 }) {
   const session = sessionStore.get();
   if (!session) {
-    throw redirect({
-      to: "/login",
-      search: {
-        redirect: location.href,
-        reason: sessionStore.wasExpired() ? "expired" : undefined,
-      },
+    authModal.open("login", {
+      redirect: location.href,
+      reason: sessionStore.wasExpired() ? "expired" : undefined,
     });
+    throw redirect({ to: "/" });
   }
   // Revalida a sessão ao entrar em rotas privadas (cache curto): uma sessão
   // expirada no servidor é detectada durante a navegação, não só no próximo erro.
@@ -127,10 +126,8 @@ async function requireAuth({
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
-      throw redirect({
-        to: "/login",
-        search: { redirect: location.href, reason: "expired" },
-      });
+      authModal.open("login", { redirect: location.href, reason: "expired" });
+      throw redirect({ to: "/" });
     }
   }
 }
@@ -176,21 +173,24 @@ const orderRoute = createRoute({
   errorComponent: RouteError,
 });
 
+/** Links diretos para /login e /register abrem o modal sobre a home. */
+function openAuthModal(mode: "login" | "register", search: AuthSearch): never {
+  authModal.open(mode, search);
+  throw redirect({ to: "/" });
+}
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
   validateSearch: validateAuthSearch,
-  component: lazyRouteComponent(() => import("@/pages/AuthPages"), "LoginPage"),
+  beforeLoad: ({ search }) => openAuthModal("login", search),
 });
 
 const registerRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/register",
   validateSearch: validateAuthSearch,
-  component: lazyRouteComponent(
-    () => import("@/pages/AuthPages"),
-    "RegisterPage",
-  ),
+  beforeLoad: ({ search }) => openAuthModal("register", search),
 });
 
 const profileRoute = createRoute({

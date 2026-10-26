@@ -1,4 +1,4 @@
-# Arquitetura — KURIO
+﻿# Arquitetura — KURIO
 
 ## Visão geral
 
@@ -136,14 +136,19 @@ Cliente → servidor: `session.identify { token }` emitido a cada `connect`.
 
 ## Desvios do Figma e substituição de assets
 
-O conector do Figma não estava disponível durante a implementação (limite de chamadas do plano registrado no documento de mapeamento, e sem acesso ao arquivo pelo navegador). A interface foi construída a partir do **mapeamento técnico** fornecido (tokens de cor, Roboto Mono, grid de 1200 px com sidebar de 310 px, cards de ~258 px, hero de 1200×450, textos, coleções, redes, colunas do carrinho, breadcrumb, avaliação “19 avaliações de colecionadores”). Desvios conhecidos:
+Fonte de verdade visual: os 15 frames exportados do Figma como SVG (9 desktop, 6 mobile). Texto e logo vêm como desenho (_path_) nesses SVGs, então a tipografia e o logotipo não são extraíveis. Decisões e desvios:
 
-- **Artes dos NFTs**: substituídas por 24 artes generativas determinísticas na paleta da marca (`scripts/generate-artwork.mjs`, WebP 640/320 px), servidas localmente. Os nomes e preços dos NFTs do layout foram preservados (Emerald Ape #042 — 1.19 ETH, Sage Nomad #009 — 1.69, Neon Vessel #552 — 1.99 com preço anterior 2.29, Cosmic Bloom #118 — 1.29, Violet Nomad #314 — 1.39).
-- **Contagens das coleções/redes** são calculadas a partir das fixtures (48 NFTs) em vez dos números estáticos da arte (33, 12, 65…), e reagem aos demais filtros.
-- Telas sem detalhamento no mapeamento (Pagamento, Confirmação, Login/Cadastro, Perfil, Carteiras) seguem o mesmo sistema visual (superfícies `#241612`, bordas `#3F2319`, acento `#E89B55`, botões primários `#D28A4C`).
+- **Tipografia**: Roboto Mono (400/500/700, @fontsource). O estilo do Figma informado (700, 43 px, line-height 70 px) traz `font/family` como _placeholder_, sem nome real de fonte.
+- **Logo**: não há arquivo do logo oficial. Usa-se o logotipo textual “KURIO” no cabeçalho. **Pendência**: trocar pelo logo oficial quando disponível.
+- **Artes dos NFTs**: as artes dos macacos do Figma (NFT Artwork 03/04/05/09) foram convertidas para WebP em `public/nft`; as demais (24 no total) são artes generativas determinísticas na paleta da marca (`scripts/generate-artwork.mjs`), servidas localmente.
+- **Ícones**: os SVGs do Figma estão em `src/assets/icons` e são renderizados por `<Icon />` (máscara CSS, herdam `currentColor`); `lucide-react` cobre o restante.
+- **Login/Cadastro**: modal global (`AuthModal`, abas “Entrar | Criar conta”) em vez de página; em telas pequenas ocupa a tela inteira, como no frame mobile. `/login` e `/register` abrem o modal e redirecionam para `/`. Botões Google/Facebook e “Esqueceu a senha?” do Figma não existem (sem fluxo real) e não são exibidos.
+- **Perfil e Carteiras**: estrutura “Meu perfil” com menu lateral (`AccountLayout`) e sem rodapé, como no Figma. No mobile o menu vira abas com rolagem horizontal. Atividade, Ofertas, Arquivos baixados e Suporte ficam desabilitados (fora do escopo do desafio).
+- **Barra inferior mobile** (`MobileTabBar`): Início, Favoritos, Carrinho (com contador) e Conta/Entrar. O botão central de _scan_ do Figma foi omitido por não ter função.
+- **Telas sem frame mobile no Figma** (Confirmação de Pedido, Perfil, Carteiras): o layout desktop foi empilhado em coluna única, seguindo o sistema visual existente. Também não há frames para estados de erro, vazio, carregando, 404 e toasts; foram criados no estilo do app (`components/states.tsx`: `EmptyState`, `ErrorState`, `NotFound`, `RouteError`; skeletons com _shimmer_; toasts `sonner`).
+- **Divergências conhecidas de layout** (não replicadas por escopo/tempo): abas “Detalhes do NFT/Avaliações” e carrossel “Mais desta coleção” no detalhe; tabela de colunas e “Colecionadores também viram” no carrinho; blocos “Seus NFTs” e “Carteira e rede” no pagamento; busca “Explorar coleções” com botão de filtro na home mobile.
+- **Contagens das coleções/redes** são calculadas a partir das fixtures (36 NFTs) e reagem aos demais filtros.
 - `text-secondary` (`#CFB28C`) é usado para textos de apoio sobre `#140D0A` (contraste ≈ 9:1); placeholders usam o mesmo tom com 70% de opacidade.
-- Ícones: `lucide-react` no lugar dos SVGs do arquivo.
-
 ## Performance e Lighthouse
 
 Configuração: `scripts/lighthouse.mjs` (Lighthouse Node API + Chromium do Playwright, `vite preview` do build de produção com mocks ativos e cenário padrão, 3 medições por página e perfil, mediana). Resultados completos em `lighthouse/summary.md` e relatórios em `lighthouse/reports/`.

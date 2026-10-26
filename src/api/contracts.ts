@@ -422,11 +422,7 @@ export interface ClientToServerEvents {
 // ---------------------------------------------------------------------------
 
 export type LatencyProfile =
-  | "none"
-  | "fast"
-  | "realistic"
-  | "slow"
-  | "out-of-order";
+  "none" | "fast" | "realistic" | "slow" | "out-of-order";
 export type FaultKind =
   | "http-500"
   | "http-503"

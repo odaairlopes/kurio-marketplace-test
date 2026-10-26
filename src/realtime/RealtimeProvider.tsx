@@ -37,10 +37,7 @@ import { cartOwnerKey, useSession } from "@/lib/session";
 import { keys } from "@/queries/keys";
 
 export type ConnectionStatus =
-  | "connecting"
-  | "connected"
-  | "reconnecting"
-  | "offline";
+  "connecting" | "connected" | "reconnecting" | "offline";
 
 interface RealtimeContextValue {
   status: ConnectionStatus;

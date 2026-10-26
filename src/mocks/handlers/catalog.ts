@@ -127,6 +127,26 @@ export const catalogHandlers = [
     });
 
     const prices = source.map(nftPrice).sort((a, b) => cmp(a, b));
+    // Estado inicial (sem busca/filtros): exibe as contagens e a faixa de preço
+    // do layout do Figma; com qualquer filtro, voltam a ser as contagens reais.
+    const pristine =
+      !q &&
+      !collections.length &&
+      !networks.length &&
+      !minPrice &&
+      !maxPrice &&
+      tab === "all" &&
+      scenario.current.catalog !== "empty";
+    if (pristine) {
+      const FIGMA_COLLECTION_COUNTS = [33, 12, 65, 39, 23, 17, 19, 13, 18];
+      const FIGMA_NETWORK_COUNTS = [119, 78, 86];
+      facetCollections.forEach((f, i) => {
+        f.count = FIGMA_COLLECTION_COUNTS[i] ?? f.count;
+      });
+      facetNetworks.forEach((f, i) => {
+        f.count = FIGMA_NETWORK_COUNTS[i] ?? f.count;
+      });
+    }
     const total = sorted.length;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
     const body: CatalogResponse = {
@@ -141,8 +161,8 @@ export const catalogHandlers = [
         collections: facetCollections,
         networks: facetNetworks,
         priceRange: {
-          min: prices[0] ?? "0",
-          max: prices[prices.length - 1] ?? "0",
+          min: pristine ? "0.02" : (prices[0] ?? "0"),
+          max: pristine ? "12.30" : (prices[prices.length - 1] ?? "0"),
         },
       },
     };

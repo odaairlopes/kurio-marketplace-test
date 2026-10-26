@@ -9,6 +9,11 @@ async function stabilize(page: Page) {
   });
   await page.evaluate(() => document.fonts.ready);
   await page.waitForLoadState("networkidle");
+  await page.evaluate(() =>
+    document.querySelectorAll("img").forEach((img) => {
+      img.loading = "eager";
+    }),
+  );
   await page.waitForFunction(() =>
     [...document.images].every((img) => img.complete),
   );

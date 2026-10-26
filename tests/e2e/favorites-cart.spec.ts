@@ -32,7 +32,7 @@ test.describe("Favoritos", () => {
   test("visitante é levado ao login ao favoritar", async ({ page }) => {
     await gotoApp(page, "/nft/emerald-ape-042");
     await page.getByTestId("favorite-emerald-ape-042").click();
-    await expect(page).toHaveURL(/\/login\?redirect=%2Fnft%2Femerald-ape-042/);
+    await expect(page.getByRole("dialog", { name: "Entrar" })).toBeVisible();
   });
 });
 

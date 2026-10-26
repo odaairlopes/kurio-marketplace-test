@@ -1,11 +1,12 @@
-import { useQueries } from "@tanstack/react-query";
+﻿import { useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Camera, LogOut, Trash2 } from "lucide-react";
+import { Camera, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { User } from "@/api/contracts";
 import { ApiError } from "@/api/http";
+import { AccountLayout } from "@/components/layout/AccountLayout";
 import { Avatar } from "@/components/layout/Avatar";
 import { ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,6 @@ import { formatEth } from "@/lib/money";
 import { formatDate } from "@/lib/utils";
 import {
   useChangePassword,
-  useLogout,
   useOrders,
   useProfile,
   useRemoveAvatar,
@@ -463,32 +463,16 @@ function Section({
 
 export function ProfilePage() {
   const profile = useProfile();
-  const logout = useLogout();
 
   return (
-    <div className="container-kurio flex flex-col gap-8 pt-8">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[28px] font-bold md:text-4xl">
-            Perfil do colecionador
-          </h1>
-          {profile.data && (
-            <p className="mt-1 text-fg-muted">@{profile.data.handle}</p>
-          )}
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link to="/wallets">Carteiras</Link>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            loading={logout.isPending}
-            onClick={() => logout.mutate()}
-          >
-            <LogOut aria-hidden /> Sair
-          </Button>
-        </div>
+    <AccountLayout active="/profile">
+      <div>
+        <h1 className="text-[28px] font-bold md:text-4xl">
+          Perfil do colecionador
+        </h1>
+        {profile.data && (
+          <p className="mt-1 text-fg-muted">@{profile.data.handle}</p>
+        )}
       </div>
       {profile.isPending ? (
         <div
@@ -521,6 +505,6 @@ export function ProfilePage() {
           </Section>
         </>
       )}
-    </div>
+    </AccountLayout>
   );
 }

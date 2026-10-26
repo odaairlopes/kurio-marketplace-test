@@ -1,5 +1,4 @@
-import { getRouteApi, Link, useRouter } from "@tanstack/react-router";
-import { Eye, EyeOff } from "lucide-react";
+﻿import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { ApiError } from "@/api/http";
@@ -9,9 +8,6 @@ import { Field, type FieldControlProps } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Alert } from "@/components/ui/misc";
 import { useLogin, useRegister } from "@/queries/account";
-
-const loginRoute = getRouteApi("/login");
-const registerRoute = getRouteApi("/register");
 
 export const passwordRule = z
   .string()
@@ -56,39 +52,14 @@ export function PasswordInput(
   );
 }
 
-function AuthLayout({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="container-kurio grid items-stretch gap-10 pt-10 md:grid-cols-2 md:pt-16">
-      <div className="relative hidden overflow-hidden rounded-xl border border-line md:block">
-        <img
-          src="/nft/art-07.webp"
-          alt=""
-          width={640}
-          height={640}
-          className="absolute inset-0 size-full object-cover"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-ink via-ink/40 to-transparent" />
-        <p className="absolute bottom-8 left-8 right-8 text-2xl font-bold uppercase leading-snug text-fg-strong">
-          Own the future of digital art
-        </p>
-      </div>
-      <div className="mx-auto flex w-full max-w-md flex-col justify-center gap-6 py-4">
-        <div>
-          <h1 className="text-[28px] font-bold md:text-4xl">{title}</h1>
-          <p className="mt-2 text-fg-muted">{subtitle}</p>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
+interface AuthFormProps {
+  reason?: "expired";
+  onSwitch: () => void;
+  onSuccess: () => void;
+}
+
+function AuthHeading({ subtitle }: { subtitle: string }) {
+  return <p className="text-center text-sm text-fg-muted">{subtitle}</p>;
 }
 
 const loginSchema = z.object({
@@ -96,9 +67,7 @@ const loginSchema = z.object({
   password: z.string().min(1, "Informe sua senha."),
 });
 
-export function LoginPage() {
-  const search = loginRoute.useSearch();
-  const router = useRouter();
+export function LoginForm({ reason, onSwitch, onSuccess }: AuthFormProps) {
   const login = useLogin();
   const [values, setValues] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -118,16 +87,14 @@ export function LoginPage() {
     }
     setErrors({});
     login.mutate(parsed.data, {
-      onSuccess: () => router.history.replace(search.redirect ?? "/"),
+      onSuccess,
     });
   };
 
   return (
-    <AuthLayout
-      title="Entrar"
-      subtitle="Acesse sua conta para comprar, favoritar e acompanhar pedidos."
-    >
-      {search.reason === "expired" && (
+    <div className="flex flex-col gap-5">
+      <AuthHeading subtitle="Entre para gerenciar sua carteira, coleção e perfil de criador." />
+      {reason === "expired" && (
         <Alert variant="warning" title="Sessão expirada">
           Entre novamente para continuar de onde parou. Seu carrinho e o
           rascunho do pagamento foram preservados.
@@ -178,20 +145,20 @@ export function LoginPage() {
           Entrar
         </Button>
       </form>
-      <p className="text-sm text-fg-muted">
+      <p className="text-center text-sm text-fg-muted">
         Ainda não tem conta?{" "}
-        <Link
-          to="/register"
-          search={{ redirect: search.redirect }}
+        <button
+          type="button"
+          onClick={onSwitch}
           className="font-bold text-accent-text hover:underline"
         >
           Cadastre-se
-        </Link>
+        </button>
       </p>
       <p className="text-xs text-fg-muted">
         Recuperação de senha não faz parte desta demonstração.
       </p>
-    </AuthLayout>
+    </div>
   );
 }
 
@@ -213,9 +180,7 @@ const registerSchema = z
     message: "As senhas não conferem.",
   });
 
-export function RegisterPage() {
-  const search = registerRoute.useSearch();
-  const router = useRouter();
+export function RegisterForm({ onSwitch, onSuccess }: AuthFormProps) {
   const register = useRegister();
   const [values, setValues] = useState({
     displayName: "",
@@ -252,7 +217,7 @@ export function RegisterPage() {
         acceptTerms: values.acceptTerms,
       },
       {
-        onSuccess: () => router.history.replace(search.redirect ?? "/"),
+        onSuccess,
         onError: () =>
           requestAnimationFrame(() =>
             document
@@ -264,10 +229,8 @@ export function RegisterPage() {
   };
 
   return (
-    <AuthLayout
-      title="Criar conta"
-      subtitle="Cadastre-se para colecionar NFTs selecionados."
-    >
+    <div className="flex flex-col gap-5">
+      <AuthHeading subtitle="Crie seu perfil de colecionador e conecte uma carteira quando quiser." />
       {apiError && !Object.keys(apiError.fields).length && (
         <Alert
           variant="danger"
@@ -356,16 +319,16 @@ export function RegisterPage() {
           Criar conta
         </Button>
       </form>
-      <p className="text-sm text-fg-muted">
+      <p className="text-center text-sm text-fg-muted">
         Já tem conta?{" "}
-        <Link
-          to="/login"
-          search={{ redirect: search.redirect }}
+        <button
+          type="button"
+          onClick={onSwitch}
           className="font-bold text-accent-text hover:underline"
         >
           Entrar
-        </Link>
+        </button>
       </p>
-    </AuthLayout>
+    </div>
   );
 }

@@ -1,14 +1,17 @@
-import { useQueryClient } from "@tanstack/react-query";
-import { Outlet, useRouter } from "@tanstack/react-router";
+﻿import { useQueryClient } from "@tanstack/react-query";
+import { Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { api } from "@/api/endpoints";
+import { AuthModal } from "@/components/auth/AuthModal";
+import { authModal } from "@/lib/auth-modal";
 import { sessionStore, useSession } from "@/lib/session";
 import { clearPrivateCache } from "@/queries/account";
 import { useRealtime } from "@/realtime/RealtimeProvider";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
+import { MobileTabBar } from "./MobileTabBar";
 import { ScenarioPanel } from "./ScenarioPanel";
 
 const PRIVATE_PREFIXES = ["/checkout", "/orders", "/profile", "/wallets"];
@@ -34,9 +37,9 @@ function SessionWatcher() {
             "Sua sessão expirou. Entre novamente para continuar de onde parou.",
             { id: "session-expired" },
           );
-          void router.navigate({
-            to: "/login",
-            search: { redirect: location.href, reason: "expired" },
+          authModal.open("login", {
+            redirect: location.href,
+            reason: "expired",
           });
         } else if (
           event.type === "logout" &&
@@ -99,6 +102,8 @@ function ConnectionBanner() {
 }
 
 export function RootLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const accountArea = pathname === "/profile" || pathname === "/wallets";
   return (
     <>
       <a
@@ -112,8 +117,11 @@ export function RootLayout() {
       <main id="conteudo" tabIndex={-1} className="outline-none">
         <Outlet />
       </main>
-      <Footer />
+      {!accountArea && <Footer />}
+      <div aria-hidden className="h-20 md:hidden" />
+      <MobileTabBar />
       <SessionWatcher />
+      <AuthModal />
       {import.meta.env.VITE_ENABLE_MOCKS === "true" && <ScenarioPanel />}
       <Toaster
         theme="dark"

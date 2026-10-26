@@ -1,13 +1,5 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import {
-  LogIn,
-  LogOut,
-  Menu,
-  Search,
-  ShoppingBag,
-  User,
-  Wallet,
-} from "lucide-react";
+﻿import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Menu, Search, Wallet, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +9,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/overlays";
+import { Icon } from "@/components/ui/icon";
+import { Input } from "@/components/ui/input";
+import { authModal } from "@/lib/auth-modal";
 import { useSession } from "@/lib/session";
+import { useIsDesktop } from "@/lib/useMediaQuery";
 import { cn } from "@/lib/utils";
 import { useLogout } from "@/queries/account";
 import { useCart } from "@/queries/cart";
@@ -35,7 +31,7 @@ export function Logo({ className }: { className?: string }) {
     <Link
       to="/"
       className={cn(
-        "text-2xl font-bold tracking-[0.2em] text-fg-strong",
+        "mt-3.5 text-sm font-bold tracking-[0.13em] text-fg-strong",
         className,
       )}
       aria-label="KURIO — página inicial"
@@ -49,16 +45,21 @@ function CartLink() {
   const cart = useCart();
   const count = cart.data?.items.reduce((acc, i) => acc + i.quantity, 0) ?? 0;
   return (
-    <Button asChild variant="ghost" size="icon" className="relative">
+    <Button
+      asChild
+      variant="ghost"
+      size="icon"
+      className="relative size-11 hover:bg-transparent"
+    >
       <Link
         to="/cart"
         aria-label={`Carrinho, ${count} ${count === 1 ? "item" : "itens"}`}
         data-testid="header-cart"
       >
-        <ShoppingBag aria-hidden />
+        <Icon name="cart" className="size-6" />
         {count > 0 && (
           <span
-            className="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[11px] font-bold text-primary-foreground"
+            className="absolute right-0.5 top-1.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold leading-none text-primary-foreground"
             aria-hidden
           >
             {count}
@@ -78,14 +79,14 @@ function AccountDrawer() {
 
   if (!session) {
     return (
-      <Button asChild variant="ghost" size="icon">
-        <Link
-          to="/login"
-          search={{ redirect: pathname === "/login" ? undefined : pathname }}
-          aria-label="Entrar na conta"
-        >
-          <User aria-hidden />
-        </Link>
+      <Button
+        type="button"
+        onClick={() => authModal.open("login", { redirect: pathname })}
+        aria-label="Entrar na conta"
+        className="ml-6 h-[35px] gap-1.5 px-3 text-base font-bold normal-case tracking-normal"
+      >
+        <Icon name="logout" />
+        Entrar
       </Button>
     );
   }
@@ -118,7 +119,7 @@ function AccountDrawer() {
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 rounded-md px-3 py-3 hover:bg-surface"
           >
-            <User className="size-4" aria-hidden /> Perfil do colecionador
+            <Icon name="user" className="size-4" /> Perfil do colecionador
           </Link>
           <Link
             to="/wallets"
@@ -132,7 +133,7 @@ function AccountDrawer() {
             onClick={() => setOpen(false)}
             className="flex items-center gap-3 rounded-md px-3 py-3 hover:bg-surface"
           >
-            <ShoppingBag className="size-4" aria-hidden /> Carrinho
+            <Icon name="cart" className="size-4" /> Carrinho
           </Link>
         </nav>
         <Button
@@ -148,7 +149,7 @@ function AccountDrawer() {
             })
           }
         >
-          <LogOut aria-hidden /> Sair
+          <Icon name="logout" /> Sair
         </Button>
       </SheetContent>
     </Sheet>
@@ -201,13 +202,16 @@ function MobileMenu() {
             ),
           )}
           {!session && (
-            <Link
-              to="/login"
-              onClick={() => setOpen(false)}
-              className="mt-4 flex items-center gap-2 rounded-md px-3 py-3 hover:bg-surface"
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                authModal.open("login");
+              }}
+              className="mt-4 flex w-full items-center gap-2 rounded-md px-3 py-3 text-left hover:bg-surface"
             >
-              <LogIn className="size-4" aria-hidden /> Entrar
-            </Link>
+              <Icon name="logout" className="size-4" /> Entrar
+            </button>
           )}
         </nav>
       </SheetContent>
@@ -215,12 +219,72 @@ function MobileMenu() {
   );
 }
 
+function HeaderSearchBar({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  const [draft, setDraft] = useState("");
+  return (
+    <div className="border-b border-line bg-ink">
+      <form
+        role="search"
+        className="container-kurio flex items-center gap-3 py-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const q = draft.trim();
+          void navigate({
+            to: "/",
+            search: (prev: Record<string, unknown>) => ({
+              ...prev,
+              q: q || undefined,
+              page: undefined,
+            }),
+            hash: "catalogo",
+          });
+          onClose();
+        }}
+      >
+        <label htmlFor="header-search" className="sr-only">
+          Buscar NFTs por nome, criador ou token
+        </label>
+        <Search className="size-5 shrink-0 text-fg-muted" aria-hidden />
+        <Input
+          id="header-search"
+          type="search"
+          autoFocus
+          autoComplete="off"
+          placeholder="Buscar NFTs, criadores…"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="h-10 border-line-soft"
+        />
+        <Button type="submit" className="h-10 px-5 normal-case tracking-normal">
+          Buscar
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Fechar busca"
+          onClick={onClose}
+        >
+          <X aria-hidden />
+        </Button>
+      </form>
+    </div>
+  );
+}
+
 export function Header() {
   const navigate = useNavigate();
   const location = useRouterState({ select: (s) => s.location });
   const isHome = location.pathname === "/";
+  const isDesktop = useIsDesktop();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const focusSearch = async () => {
+    if (isDesktop) {
+      setSearchOpen((v) => !v);
+      return;
+    }
     if (!isHome) await navigate({ to: "/" });
     requestAnimationFrame(() => {
       const input = document.getElementById(
@@ -232,14 +296,17 @@ export function Header() {
   };
 
   return (
-    <header className="border-b border-line">
-      <div className="container-kurio flex h-18 items-center justify-between gap-4">
+    <header>
+      <div className="container-kurio relative flex h-17 items-center justify-between gap-4 border-b border-[#442c1a]">
         <div className="flex items-center gap-2">
           <MobileMenu />
           <Logo />
         </div>
-        <nav aria-label="Principal" className="hidden md:block">
-          <ul className="flex items-center gap-10">
+        <nav
+          aria-label="Principal"
+          className="hidden h-full pt-0.5 md:block xl:absolute xl:left-94 xl:top-0"
+        >
+          <ul className="flex h-full items-center gap-10">
             {NAV.map((item) => {
               const active =
                 item.enabled &&
@@ -247,16 +314,16 @@ export function Header() {
                 isHome &&
                 !location.hash;
               return (
-                <li key={item.label}>
+                <li key={item.label} className="h-full">
                   {item.enabled ? (
                     <Link
                       to="/"
                       hash={item.hash}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "relative py-2 text-[15px] transition-colors hover:text-accent-text",
+                        "relative flex h-full items-center text-base transition-colors hover:text-accent-text",
                         active
-                          ? "font-bold text-accent-text after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:bg-accent-text"
+                          ? "font-bold text-accent-text after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:bg-accent-text"
                           : "text-fg",
                       )}
                     >
@@ -266,7 +333,7 @@ export function Header() {
                     <span
                       aria-disabled="true"
                       title="Em breve"
-                      className="cursor-not-allowed text-[15px] text-fg-muted/70"
+                      className="flex h-full cursor-not-allowed items-center text-base text-fg"
                     >
                       {item.label}
                       <span className="sr-only"> (em breve)</span>
@@ -277,19 +344,24 @@ export function Header() {
             })}
           </ul>
         </nav>
-        <div className="flex items-center gap-1">
+        <div className="mt-4 flex items-center">
           <Button
             variant="ghost"
             size="icon"
+            className="size-11 hover:bg-transparent"
             aria-label="Buscar NFTs"
+            aria-expanded={isDesktop ? searchOpen : undefined}
             onClick={focusSearch}
           >
-            <Search aria-hidden />
+            <Search className="size-6!" strokeWidth={1.75} aria-hidden />
           </Button>
           <CartLink />
           <AccountDrawer />
         </div>
       </div>
+      {isDesktop && searchOpen && (
+        <HeaderSearchBar onClose={() => setSearchOpen(false)} />
+      )}
     </header>
   );
 }

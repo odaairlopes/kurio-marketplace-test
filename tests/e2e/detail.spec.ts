@@ -48,7 +48,7 @@ test.describe("Detalhe do NFT", () => {
     ).toBeVisible();
     await page.getByRole("link", { name: "Voltar ao mercado" }).click();
     await expect(page.getByTestId("results-status")).toHaveText(
-      "48 resultados",
+      "36 resultados",
     );
   });
 

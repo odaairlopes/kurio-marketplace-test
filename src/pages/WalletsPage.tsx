@@ -1,4 +1,4 @@
-import { Pencil, Plus, Wallet as WalletIcon } from "lucide-react";
+﻿import { Pencil, Plus, Wallet as WalletIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -11,6 +11,7 @@ import type {
 import { NETWORKS, WALLET_PROVIDERS } from "@/api/contracts";
 import { ApiError } from "@/api/http";
 import { ErrorState } from "@/components/states";
+import { AccountLayout } from "@/components/layout/AccountLayout";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/controls";
 import { Field } from "@/components/ui/field";
@@ -287,7 +288,7 @@ export function WalletsPage() {
     wallets.data?.items.find((w) => w.role === role);
 
   return (
-    <div className="container-kurio flex flex-col gap-8 pt-8">
+    <AccountLayout active="/wallets">
       <div>
         <h1 className="text-[28px] font-bold md:text-4xl">Carteiras</h1>
         <p className="mt-2 max-w-2xl text-fg-muted">
@@ -347,6 +348,6 @@ export function WalletsPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </AccountLayout>
   );
 }

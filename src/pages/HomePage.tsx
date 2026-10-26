@@ -64,11 +64,15 @@ const TAB_LABEL: Record<CatalogTab, string> = {
 const HERO_SLIDES = [
   {
     image: "/nft/hero.webp",
-    alt: "Arte generativa em destaque com anéis concêntricos em tons quentes",
+    alt: "Macaco de óculos redondos e jaqueta esportiva verde, em retrato ilustrado",
   },
   {
     image: "/nft/hero-2.webp",
-    alt: "Retrato abstrato em destaque com formas e cores vibrantes",
+    alt: "Gorila de chapéu bucket verde e moletom roxo, em retrato ilustrado",
+  },
+  {
+    image: "/nft/hero-3.webp",
+    alt: "Chimpanzé de blazer bege e gola alta verde, em retrato ilustrado",
   },
 ];
 
@@ -106,66 +110,66 @@ function scrollToCatalog() {
 function Hero() {
   const [slide, setSlide] = useState(0);
   return (
-    <section
-      aria-labelledby="hero-title"
-      className="relative overflow-hidden rounded-xl border border-line bg-[radial-gradient(120%_120%_at_0%_0%,#38220F_0%,#241612_45%,#140D0A_100%)]"
-    >
-      <div className="grid items-center gap-6 p-6 md:min-h-112.5 md:grid-cols-[minmax(0,1fr)_300px] md:p-10 lg:grid-cols-[minmax(0,1fr)_420px] lg:p-14">
-        <div className="flex flex-col gap-5">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-accent-text">
+    <section aria-labelledby="hero-title" className="relative">
+      <div className="grid items-start gap-8 lg:min-h-112.5 lg:grid-cols-[minmax(0,1fr)_450px]">
+        <div className="flex flex-col lg:pl-10 lg:pt-10">
+          <p className="text-[15px] leading-5.5 tracking-[0.05em] text-fg-strong">
             Bem-vindo à Kurio
           </p>
           <h1
             id="hero-title"
-            className="text-[28px] font-bold uppercase leading-tight text-fg-strong md:text-display"
+            className="mt-1.5 max-w-130 text-[28px] font-bold uppercase leading-tight text-fg-strong md:text-display md:leading-17.5"
           >
             <span className="md:hidden">Own digital culture</span>
             <span className="hidden md:inline">
-              Own the future of digital art
+              Seja dono do futuro da arte digital
             </span>
           </h1>
-          <p className="max-w-md text-sm leading-6 text-fg-muted md:text-base md:leading-7">
+          <p className="mt-[3px] max-w-140 text-sm leading-6 text-fg-muted">
             Descubra NFTs selecionados de criadores emergentes e consagrados.
             Colecione arte digital rara, apoie artistas e tenha uma parte da
             cultura da internet.
           </p>
-          <Button size="lg" className="self-start" onClick={scrollToCatalog}>
+          <Button
+            className="mt-8 h-10 w-35 self-start px-0 text-base font-bold"
+            onClick={scrollToCatalog}
+          >
             Explorar
           </Button>
         </div>
-        <div className="relative mx-auto w-full max-w-60 md:max-w-105">
+        <div className="relative mx-auto w-full max-w-60 md:max-w-112.5 lg:mx-0 lg:justify-self-end">
           <img
             src={HERO_SLIDES[slide].image}
             alt={HERO_SLIDES[slide].alt}
-            width={560}
-            height={560}
+            width={450}
+            height={450}
             fetchPriority="high"
-            className="aspect-square w-full rounded-xl border border-line-soft object-cover shadow-2xl"
+            className="aspect-square w-full rounded-[20px] object-cover"
           />
-          <div
-            className="mt-4 flex justify-center gap-2"
-            role="group"
-            aria-label="Destaques"
-          >
-            {HERO_SLIDES.map((s, i) => (
-              <button
-                key={s.image}
-                type="button"
-                aria-label={`Mostrar destaque ${i + 1} de ${HERO_SLIDES.length}`}
-                aria-pressed={slide === i}
-                onClick={() => setSlide(i)}
-                className="flex size-6 items-center justify-center"
-              >
-                <span
-                  className={cn(
-                    "h-1.5 rounded-full transition-all",
-                    slide === i ? "w-6 bg-accent-text" : "w-1.5 bg-line-soft",
-                  )}
-                />
-              </button>
-            ))}
-          </div>
         </div>
+      </div>
+      <div
+        className="mt-6 flex justify-center gap-0.5 lg:absolute lg:left-146 lg:top-[392px] lg:mt-0 lg:justify-start"
+        role="group"
+        aria-label="Destaques"
+      >
+        {HERO_SLIDES.map((s, i) => (
+          <button
+            key={s.image}
+            type="button"
+            aria-label={`Mostrar destaque ${i + 1} de ${HERO_SLIDES.length}`}
+            aria-pressed={slide === i}
+            onClick={() => setSlide(i)}
+            className="flex size-5 items-center justify-center"
+          >
+            <span
+              className={cn(
+                "size-2 rounded-full bg-brand transition-opacity",
+                slide === i ? "opacity-100" : "opacity-55",
+              )}
+            />
+          </button>
+        ))}
       </div>
     </section>
   );
@@ -175,50 +179,42 @@ function FeaturedBanner() {
   const featured = useQuery(featuredQuery());
   const item = featured.data?.items[0];
   return (
-    <aside
-      aria-labelledby="featured-title"
-      className="overflow-hidden rounded-xl border border-line bg-surface"
-    >
-      {item ? (
-        <Link
-          to="/nft/$nftId"
-          params={{ nftId: item.id }}
-          className="group block"
-        >
-          <img
-            src={item.image.replace(".webp", "-sm.webp")}
-            alt={`Arte do NFT ${item.name}`}
-            width={320}
-            height={320}
-            loading="lazy"
-            className="aspect-square w-full object-cover"
+    <aside aria-labelledby="featured-title" className="bg-featured pt-6.5">
+      <p
+        id="featured-title"
+        className="px-5 text-2xl font-bold uppercase leading-7 text-accent-text"
+      >
+        NFT em destaque
+      </p>
+      <p className="mt-3.5 text-center text-[22px] font-bold uppercase leading-7 text-fg-strong">
+        Oferta limitada
+      </p>
+      <div className="mt-2">
+        {item ? (
+          <Link
+            to="/nft/$nftId"
+            params={{ nftId: item.id }}
+            className="group block"
+          >
+            <img
+              src="/figma/featured.webp"
+              alt={`Arte do NFT ${item.name}`}
+              width={310}
+              height={341}
+              loading="lazy"
+              className="aspect-310/341 w-full rounded-[20px] object-cover"
+            />
+            <span className="sr-only">
+              {item.name}, {formatEth(item.price)}
+            </span>
+          </Link>
+        ) : (
+          <Skeleton
+            className="aspect-310/341 w-full rounded-[20px]"
+            aria-hidden
           />
-          <div className="flex flex-col gap-1 p-5">
-            <Badge className="self-start">Oferta limitada</Badge>
-            <p
-              id="featured-title"
-              className="mt-2 text-xs font-bold uppercase tracking-[0.2em] text-accent-text"
-            >
-              NFT em destaque
-            </p>
-            <p className="font-bold group-hover:text-accent-text">
-              {item.name}
-            </p>
-            <p className="text-sm text-fg-muted">{formatEth(item.price)}</p>
-          </div>
-        </Link>
-      ) : (
-        <div aria-hidden>
-          <Skeleton className="aspect-square w-full rounded-none" />
-          <div className="flex flex-col gap-2 p-5">
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-          <span id="featured-title" className="sr-only">
-            NFT em destaque
-          </span>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 }
@@ -288,42 +284,195 @@ function Pagination({
 }) {
   if (totalPages <= 1) return null;
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const base =
+    "flex size-8.5 items-center justify-center rounded-md border text-base transition-colors";
   return (
     <nav
       aria-label="Paginação do catálogo"
-      className="mt-10 flex flex-wrap items-center justify-center gap-2"
+      className="mt-12 flex flex-wrap items-center justify-center gap-2 lg:mt-16 lg:justify-end"
     >
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={page <= 1}
-        onClick={() => onPage(page - 1)}
-        aria-label="Página anterior"
-      >
-        <ChevronLeft aria-hidden />
-      </Button>
+      {page > 1 && (
+        <button
+          type="button"
+          onClick={() => onPage(page - 1)}
+          aria-label="Página anterior"
+          className={cn(
+            base,
+            "border-line-soft text-fg hover:border-accent-text",
+          )}
+        >
+          <ChevronLeft className="size-4" aria-hidden />
+        </button>
+      )}
       {pages.map((p) => (
-        <Button
+        <button
           key={p}
-          variant={p === page ? "default" : "ghost"}
-          size="sm"
+          type="button"
           aria-current={p === page ? "page" : undefined}
           aria-label={`Página ${p}`}
           onClick={() => onPage(p)}
+          className={cn(
+            base,
+            p === page
+              ? "border-primary bg-primary font-bold text-primary-foreground"
+              : "border-line-soft text-fg hover:border-accent-text",
+          )}
         >
           {p}
-        </Button>
+        </button>
       ))}
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={page >= totalPages}
-        onClick={() => onPage(page + 1)}
-        aria-label="Próxima página"
-      >
-        <ChevronRight aria-hidden />
-      </Button>
+      {page < totalPages && (
+        <button
+          type="button"
+          onClick={() => onPage(page + 1)}
+          aria-label="Próxima página"
+          className={cn(
+            base,
+            "border-line-soft text-fg hover:border-accent-text",
+          )}
+        >
+          <ChevronRight className="size-4" aria-hidden />
+        </button>
+      )}
     </nav>
+  );
+}
+
+const PROMOS = [
+  {
+    image: "/figma/banner-1.webp",
+    alt: "Macaco de óculos redondos e jaqueta verde",
+    title: "Lançamentos gênesis\nde edição limitada",
+    text: "Colecione edições escassas diretamente dos criadores antes da revelação pública.",
+  },
+  {
+    image: "/figma/banner-2.webp",
+    alt: "Chimpanzé de blazer bege e gola alta verde",
+    title: "Arte digital selecionada\ne muito mais",
+    text: "Explore novos artistas, coleções verificadas e obras digitais que definem a cultura.",
+  },
+];
+
+function PromoBanners() {
+  return (
+    <section
+      aria-label="Destaques da Kurio"
+      className="grid gap-7 lg:mt-2 lg:grid-cols-2"
+    >
+      {PROMOS.map((promo) => (
+        <article
+          key={promo.title}
+          className="flex overflow-hidden rounded-[10px] bg-surface lg:h-62.5"
+        >
+          <img
+            src={promo.image}
+            alt={promo.alt}
+            width={287}
+            height={250}
+            loading="lazy"
+            className="hidden w-35 shrink-0 object-cover object-left sm:block sm:w-60 xl:w-67.5"
+          />
+          <div className="flex flex-1 flex-col items-end py-8 pl-2 pr-6 text-right xl:pr-7.5 xl:pt-9.5">
+            <h2 className="text-xl font-bold leading-6 text-fg-strong xl:whitespace-pre-line">
+              {promo.title}
+            </h2>
+            <p className="mt-1.5 max-w-70 text-sm leading-6 text-fg-muted">
+              {promo.text}
+            </p>
+            <Button
+              className="mt-3 h-10 w-35 shrink-0 text-sm font-medium normal-case tracking-normal"
+              onClick={scrollToCatalog}
+            >
+              Explorar <ArrowRight aria-hidden />
+            </Button>
+          </div>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+const POSTS = [
+  {
+    image: "/figma/diary-1.webp",
+    date: "12 de setembro",
+    read: "Leitura de 6 min",
+    title: "Como funciona a propriedade de NFTs",
+    text: "Aprenda a colecionar, negociar e verificar ativos digitais.",
+  },
+  {
+    image: "/figma/diary-2.webp",
+    date: "13 de setembro",
+    read: "Leitura de 2 min",
+    title: "10 artistas digitais para acompanhar",
+    text: "Conheça criadores que moldam a cultura digital.",
+  },
+  {
+    image: "/figma/diary-3.webp",
+    date: "15 de setembro",
+    read: "Leitura de 3 min",
+    title: "Raridade, atributos e procedência",
+    text: "Entenda raridade, procedência, direitos autorais e utilidade.",
+  },
+  {
+    image: "/figma/diary-4.webp",
+    date: "15 de setembro",
+    read: "Leitura de 2 min",
+    title: "Como proteger sua carteira",
+    text: "Proteja sua carteira, seus ativos e sua identidade.",
+  },
+];
+
+function Journal() {
+  return (
+    <section aria-labelledby="journal-title">
+      <div className="text-center">
+        <h2
+          id="journal-title"
+          className="text-[28px] font-bold leading-9 text-fg-strong"
+        >
+          Diário da Cunhagem
+        </h2>
+        <p className="mt-2.5 text-sm leading-6 text-fg-muted">
+          Histórias, guias e insights para colecionadores sobre o universo da
+          propriedade digital.
+        </p>
+      </div>
+      <ul className="mt-9 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {POSTS.map((post) => (
+          <li key={post.title}>
+            <article className="group flex h-full flex-col overflow-hidden rounded-[10px] bg-surface">
+              <img
+                src={post.image}
+                alt=""
+                width={268}
+                height={195}
+                loading="lazy"
+                className="aspect-268/195 w-full object-cover"
+              />
+              <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5">
+                <p className="text-xs leading-5 text-fg-muted">
+                  {post.date}
+                  <span aria-hidden className="mx-2">
+                    |
+                  </span>
+                  {post.read}
+                </p>
+                <h3 className="mt-2 text-[17px] font-bold leading-5.5 text-fg-strong">
+                  {post.title}
+                </h3>
+                <p className="mt-2 text-[13px] leading-5 text-accent-text/90">
+                  {post.text}
+                </p>
+                <span className="mt-1.5 text-[13px] font-bold text-accent-text">
+                  Ler mais →
+                </span>
+              </div>
+            </article>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -416,7 +565,7 @@ export function HomePage() {
   const isUpdating = catalog.isFetching && catalog.isPlaceholderData;
 
   return (
-    <div className="container-kurio flex flex-col gap-10 pt-6 md:gap-24">
+    <div className="container-kurio flex flex-col gap-10 pt-6 md:gap-24 lg:pt-8.25">
       {/* Mobile: busca acima do hero, como no frame mobile */}
       {!isDesktop && (
         <SearchBox
@@ -470,20 +619,15 @@ export function HomePage() {
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[310px_minmax(0,1fr)] lg:gap-12">
           {isDesktop && (
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-6">
               <h2 className="sr-only">Filtros</h2>
-              <div className="rounded-xl border border-line p-5">
-                <div className="mb-8">
-                  <SearchBox
-                    value={query.q ?? ""}
-                    onChange={(q) => setSearch({ q: q || undefined }, true)}
-                  />
-                </div>
+              <div className="bg-surface px-5 pb-5 pt-4">
                 <Filters
                   value={filterState}
                   facets={data?.facets}
                   onChange={applyFilters}
                   idPrefix="df"
+                  variant="figma"
                 />
               </div>
               <FeaturedBanner />
@@ -491,12 +635,12 @@ export function HomePage() {
           )}
 
           <div className="min-w-0">
-            <div className="flex flex-col gap-4 border-b border-line pb-px xl:flex-row xl:items-end xl:justify-between">
+            <div className="flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between">
               {/* Botões de alternância (não há painéis distintos: as seções filtram a mesma lista) */}
               <div
                 role="group"
                 aria-label="Seções do catálogo"
-                className="flex max-w-full items-center gap-6 overflow-x-auto"
+                className="flex max-w-full items-center gap-5 overflow-x-auto"
               >
                 {(Object.keys(TAB_LABEL) as CatalogTab[]).map((tab) => {
                   const active = query.tab === tab;
@@ -509,10 +653,10 @@ export function HomePage() {
                         setSearch({ tab: tab === "all" ? undefined : tab })
                       }
                       className={cn(
-                        "relative whitespace-nowrap py-2 text-sm font-medium transition-colors after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full hover:text-fg",
+                        "relative h-10 whitespace-nowrap text-[15px] transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full hover:text-accent-text",
                         active
-                          ? "font-bold text-accent-text after:bg-accent-text"
-                          : "text-fg-muted after:bg-transparent",
+                          ? "text-accent-text after:bg-accent-text"
+                          : "text-fg after:bg-transparent",
                       )}
                     >
                       {TAB_LABEL[tab]}
@@ -520,8 +664,8 @@ export function HomePage() {
                   );
                 })}
               </div>
-              <div className="flex items-center gap-2 pb-2">
-                <span className="text-sm text-fg-muted" id="sort-label">
+              <div className="flex items-center">
+                <span className="text-[15px] text-fg" id="sort-label">
                   Ordenar por:
                 </span>
                 <Select
@@ -534,7 +678,7 @@ export function HomePage() {
                   }
                 >
                   <SelectTrigger
-                    className="h-9 w-55 border-none bg-transparent px-1 font-bold text-accent-text"
+                    className="h-10 w-auto gap-0.5 border-none bg-transparent px-0 text-[15px] font-normal text-fg"
                     aria-labelledby="sort-label"
                   >
                     <SelectValue />
@@ -550,11 +694,16 @@ export function HomePage() {
               </div>
             </div>
 
-            <div className="mt-4 flex min-h-8 flex-wrap items-center gap-2">
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-2",
+                activeChips.length > 0 ? "mt-2 min-h-8" : "h-0",
+              )}
+            >
               <p
                 role="status"
                 aria-live="polite"
-                className="mr-2 text-sm text-fg-muted"
+                className="sr-only"
                 data-testid="results-status"
               >
                 {catalog.isPending
@@ -586,10 +735,10 @@ export function HomePage() {
               )}
             </div>
 
-            <div className="mt-6">
+            <div className="mt-2.5">
               {catalog.isPending ? (
                 <ul
-                  className="grid grid-cols-2 gap-4 md:gap-6 lg:grid-cols-3 lg:gap-8.5"
+                  className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-x-6 lg:grid-cols-3 lg:gap-x-8.5 lg:gap-y-16"
                   aria-busy="true"
                   aria-label="Carregando catálogo"
                 >
@@ -637,7 +786,7 @@ export function HomePage() {
                   )}
                   <ul
                     className={cn(
-                      "grid grid-cols-2 gap-4 transition-opacity md:gap-6 lg:grid-cols-3 lg:gap-8.5",
+                      "grid grid-cols-2 gap-x-4 gap-y-8 transition-opacity md:gap-x-6 lg:grid-cols-3 lg:gap-x-8.5 lg:gap-y-16",
                       isUpdating && "opacity-60",
                     )}
                     aria-busy={isUpdating}
@@ -664,6 +813,9 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      <PromoBanners />
+      <Journal />
     </div>
   );
 }
