@@ -1,4 +1,12 @@
-import { addToCart, expect, gotoApp, login, test, USERS } from "./support";
+import {
+  addToCart,
+  expect,
+  gotoApp,
+  login,
+  openCart,
+  test,
+  USERS,
+} from "./support";
 
 test.describe("Favoritos", () => {
   test("favoritar persiste; falha da mutation faz rollback e permite nova tentativa", async ({
@@ -39,10 +47,11 @@ test.describe("Favoritos", () => {
 test.describe("Carrinho", () => {
   test("@main quantidades, cupom, resumo, refresh e preservação ao autenticar", async ({
     page,
+    isMobile,
   }) => {
     await addToCart(page, "emerald-ape-042", 2);
     await addToCart(page, "cosmic-bloom-118", 1);
-    await page.getByTestId("header-cart").click();
+    await openCart(page, isMobile);
     await expect(page.getByTestId("cart-item")).toHaveCount(2);
     await expect(page.getByTestId("summary-subtotal")).toHaveText("3.67 ETH"); // 2×1.19 + 1.29
 

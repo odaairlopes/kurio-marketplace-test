@@ -70,10 +70,12 @@ export function ScenarioPanel() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
-          className="fixed bottom-24 left-4 z-40 md:bottom-4 flex items-center gap-2 rounded-full border border-line-soft bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-muted shadow-lg hover:text-accent-text"
+          // Mobile: aba compacta na borda direita, fora das barras fixas dos frames do Figma
+          className="fixed bottom-4 left-4 z-40 flex items-center gap-2 rounded-full border border-line-soft bg-surface px-4 py-2 text-xs font-bold uppercase tracking-wide text-fg-muted shadow-lg hover:text-accent-text max-md:bottom-auto max-md:left-auto max-md:right-0 max-md:top-1/2 max-md:rounded-r-none max-md:border-r-0 max-md:px-2.5"
           data-testid="scenario-panel-trigger"
         >
-          <FlaskConical className="size-4" aria-hidden /> Cenários
+          <FlaskConical className="size-4" aria-hidden />{" "}
+          <span className="max-md:sr-only">Cenários</span>
         </button>
       </SheetTrigger>
       <SheetContent side="left" className="gap-5 text-sm">

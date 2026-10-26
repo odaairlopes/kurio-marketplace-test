@@ -54,6 +54,58 @@ export function SummaryRows({
   );
 }
 
+/** Resumo do frame mobile “Carrinho de NFTs” (mesmos test ids da versão desktop). */
+export function MobileSummaryRows({
+  quote,
+}: {
+  quote: Pick<Quote, "subtotal" | "discount" | "networkFee" | "total" | "coupon">;
+}) {
+  return (
+    <dl className="flex flex-col gap-3 text-[15px] leading-5 text-fg" data-testid="summary">
+      <div className="flex justify-between gap-4">
+        <dt>Subtotal</dt>
+        <dd data-testid="summary-subtotal">
+          {formatEth(quote.subtotal, { maxDecimals: 6 })}
+        </dd>
+      </div>
+      <div className="flex justify-between gap-4">
+        <dt>
+          {quote.coupon
+            ? `Cupom ${quote.coupon.code} (${quote.coupon.percent}%)`
+            : "Desconto do lançamento"}
+        </dt>
+        <dd
+          data-testid="summary-discount"
+          className={quote.coupon ? "text-success" : ""}
+        >
+          {quote.coupon ? "−" : ""}
+          {formatEth(quote.discount, { maxDecimals: 6 })}
+        </dd>
+      </div>
+      <div className="flex justify-between gap-4">
+        <dt>Taxa de rede</dt>
+        <dd className="text-right">
+          <span className="block" data-testid="summary-fee">
+            {formatEth(quote.networkFee, { maxDecimals: 6 })}
+          </span>
+          <span className="block text-xs leading-4 text-accent-text">
+            Taxa estimada
+          </span>
+        </dd>
+      </div>
+      <div className="flex items-center justify-between gap-4">
+        <dt className="text-base font-bold leading-6">Total</dt>
+        <dd
+          className="text-lg font-bold leading-6 text-accent-text"
+          data-testid="summary-total"
+        >
+          {formatEth(quote.total, { maxDecimals: 6 })}
+        </dd>
+      </div>
+    </dl>
+  );
+}
+
 export function SummarySkeleton() {
   return (
     <div

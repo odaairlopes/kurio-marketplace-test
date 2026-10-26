@@ -7,6 +7,8 @@ import { api } from "@/api/endpoints";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { authModal } from "@/lib/auth-modal";
 import { sessionStore, useSession } from "@/lib/session";
+import { scenarioPanelEnabled } from "@/lib/scenario-panel";
+import { useIsDesktop } from "@/lib/useMediaQuery";
 import { clearPrivateCache } from "@/queries/account";
 import { useRealtime } from "@/realtime/RealtimeProvider";
 import { Footer } from "./Footer";
@@ -101,9 +103,23 @@ function ConnectionBanner() {
   );
 }
 
+/**
+ * Telas com frame mobile próprio no Figma: no celular não exibem o header
+ * global (cada uma tem sua barra superior). Detalhe, carrinho e pagamento
+ * ocupam a tela inteira, com ações fixas no rodapé no lugar da tab bar.
+ */
+/** Lido uma vez na carga: o painel não faz parte do layout do Figma. */
+const showScenarioPanel =
+  import.meta.env.VITE_ENABLE_MOCKS === "true" && scenarioPanelEnabled();
+
+const FULLSCREEN_MOBILE = /^\/(nft\/[^/]+|cart|checkout)\/?$/;
+
 export function RootLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isDesktop = useIsDesktop();
   const accountArea = pathname === "/profile" || pathname === "/wallets";
+  const fullscreen = !isDesktop && FULLSCREEN_MOBILE.test(pathname);
+  const showHeader = isDesktop || (pathname !== "/" && !fullscreen);
   return (
     <>
       <a
@@ -112,20 +128,25 @@ export function RootLayout() {
       >
         Pular para o conteúdo
       </a>
-      <Header />
+      {showHeader && <Header />}
       <ConnectionBanner />
       <main id="conteudo" tabIndex={-1} className="outline-none">
         <Outlet />
       </main>
-      {!accountArea && <Footer />}
-      <div aria-hidden className="h-20 md:hidden" />
-      <MobileTabBar />
+      {!accountArea && !fullscreen && <Footer />}
+      {!fullscreen && (
+        <>
+          <div aria-hidden className="h-[calc(95px+env(safe-area-inset-bottom))] md:hidden" />
+          <MobileTabBar />
+        </>
+      )}
       <SessionWatcher />
       <AuthModal />
-      {import.meta.env.VITE_ENABLE_MOCKS === "true" && <ScenarioPanel />}
+      {showScenarioPanel && <ScenarioPanel />}
       <Toaster
         theme="dark"
-        position="bottom-right"
+        // Mobile: no topo, longe da tab bar e das barras de ação fixas
+        position={isDesktop ? "bottom-right" : "top-center"}
         closeButton
         toastOptions={{
           classNames: {

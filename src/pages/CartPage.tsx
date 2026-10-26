@@ -5,7 +5,12 @@ import type { CartItem, Network, Quote, QuoteIssue } from "@/api/contracts";
 import { NETWORKS } from "@/api/contracts";
 import { ApiError } from "@/api/http";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { SummaryRows, SummarySkeleton } from "@/components/cart/OrderSummary";
+import {
+  MobileSummaryRows,
+  SummaryRows,
+  SummarySkeleton,
+} from "@/components/cart/OrderSummary";
+import { MobileTopBar } from "@/components/mobile/MobileTopBar";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import { EmptyState, ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
@@ -14,7 +19,8 @@ import { Input, NativeSelect } from "@/components/ui/input";
 import { Alert, Skeleton } from "@/components/ui/misc";
 import { getCheckoutNetwork, setCheckoutNetwork } from "@/lib/checkout-storage";
 import { formatEth, mul } from "@/lib/money";
-import { NETWORK_LABEL } from "@/lib/utils";
+import { useIsDesktop } from "@/lib/useMediaQuery";
+import { cn, NETWORK_LABEL } from "@/lib/utils";
 import {
   useApplyCoupon,
   useCart,
@@ -42,11 +48,10 @@ function CartRow({
 }) {
   const update = useUpdateCartItem();
   const remove = useRemoveCartItem();
-  const issues = issuesFor(quote, item.id);
-  const priceIssue = issues.find((i) => i.type === "PRICE_CHANGED");
-  const stockIssue = issues.find((i) => i.type === "INSUFFICIENT_AVAILABILITY");
+  const priceIssue = issuesFor(quote, item.id).find(
+    (i) => i.type === "PRICE_CHANGED",
+  );
   const max = Math.max(1, Math.min(item.available, item.maxPerOrder));
-  const error = update.error instanceof ApiError ? update.error.message : null;
 
   return (
     <li
@@ -121,68 +126,168 @@ function CartRow({
         </Button>
       </div>
 
-      {(priceIssue || stockIssue || error) && (
-        <div
-          className="col-span-2 flex flex-col gap-2 md:col-span-5"
-          role="status"
-        >
-          {priceIssue && (
-            <Alert
-              variant="warning"
-              title="Preço alterado"
-              data-testid="price-changed-notice"
-            >
-              O preço mudou de <strong>{formatEth(priceIssue.from)}</strong>{" "}
-              para <strong>{formatEth(priceIssue.to)}</strong> enquanto o item
-              estava no carrinho.{" "}
-              <button
-                className="font-bold text-accent-text underline"
-                onClick={() =>
-                  update.mutate({ itemId: item.id, acceptPrice: true })
-                }
-              >
-                Aceitar novo preço
-              </button>
-            </Alert>
-          )}
-          {stockIssue && (
-            <Alert
-              variant="danger"
-              title={
-                stockIssue.available === 0
-                  ? "Edição esgotada"
-                  : "Disponibilidade reduzida"
-              }
-              data-testid="stock-notice"
-            >
-              {stockIssue.available === 0 ? (
-                <>Esta edição esgotou. Remova o item para continuar.</>
-              ) : (
-                <>
-                  Restam apenas <strong>{stockIssue.available}</strong>.{" "}
-                  <button
-                    className="font-bold text-accent-text underline"
-                    onClick={() =>
-                      update.mutate({
-                        itemId: item.id,
-                        quantity: stockIssue.available,
-                      })
-                    }
-                  >
-                    Ajustar para {stockIssue.available}
-                  </button>
-                </>
-              )}
-            </Alert>
-          )}
-          {error && <p className="text-sm text-danger">{error}</p>}
-        </div>
-      )}
+      <RowNotices
+        item={item}
+        quote={quote}
+        update={update}
+        className="col-span-2 md:col-span-5"
+      />
     </li>
   );
 }
 
-function CouponForm({ applied }: { applied: string | null }) {
+/** Avisos da linha: preço alterado, disponibilidade e erro de atualização. */
+function RowNotices({
+  item,
+  quote,
+  update,
+  className,
+}: {
+  item: CartItem;
+  quote: Quote | undefined;
+  update: ReturnType<typeof useUpdateCartItem>;
+  className?: string;
+}) {
+  const error = update.error instanceof ApiError ? update.error.message : null;
+  const issues = issuesFor(quote, item.id);
+  const priceIssue = issues.find((i) => i.type === "PRICE_CHANGED");
+  const stockIssue = issues.find((i) => i.type === "INSUFFICIENT_AVAILABILITY");
+  if (!priceIssue && !stockIssue && !error) return null;
+  return (
+    <div className={cn("flex flex-col gap-2", className)} role="status">
+      {priceIssue && (
+        <Alert
+          variant="warning"
+          title="Preço alterado"
+          data-testid="price-changed-notice"
+        >
+          O preço mudou de <strong>{formatEth(priceIssue.from)}</strong>{" "}
+          para <strong>{formatEth(priceIssue.to)}</strong> enquanto o item
+          estava no carrinho.{" "}
+          <button
+            className="font-bold text-accent-text underline"
+            onClick={() =>
+              update.mutate({ itemId: item.id, acceptPrice: true })
+            }
+          >
+            Aceitar novo preço
+          </button>
+        </Alert>
+      )}
+      {stockIssue && (
+        <Alert
+          variant="danger"
+          title={
+            stockIssue.available === 0
+              ? "Edição esgotada"
+              : "Disponibilidade reduzida"
+          }
+          data-testid="stock-notice"
+        >
+          {stockIssue.available === 0 ? (
+            <>Esta edição esgotou. Remova o item para continuar.</>
+          ) : (
+            <>
+              Restam apenas <strong>{stockIssue.available}</strong>.{" "}
+              <button
+                className="font-bold text-accent-text underline"
+                onClick={() =>
+                  update.mutate({
+                    itemId: item.id,
+                    quantity: stockIssue.available,
+                  })
+                }
+              >
+                Ajustar para {stockIssue.available}
+              </button>
+            </>
+          )}
+        </Alert>
+      )}
+      {error && <p className="text-sm text-danger">{error}</p>}
+    </div>
+  );
+}
+
+/** Linha do frame mobile: card 100 px com arte, edição, preço e stepper redondo. */
+function MobileCartRow({
+  item,
+  quote,
+}: {
+  item: CartItem;
+  quote: Quote | undefined;
+}) {
+  const update = useUpdateCartItem();
+  const remove = useRemoveCartItem();
+  const priceIssue = issuesFor(quote, item.id).find(
+    (i) => i.type === "PRICE_CHANGED",
+  );
+  const max = Math.max(1, Math.min(item.available, item.maxPerOrder));
+
+  return (
+    <li className="flex flex-col gap-2" data-testid="cart-item">
+      <div className="shadow-card relative flex h-[100px] overflow-hidden rounded-[14px] bg-surface">
+        <img
+          src={item.imageSmall}
+          alt={`Arte do NFT ${item.name}`}
+          width={100}
+          height={100}
+          className="size-[100px] shrink-0 object-cover"
+        />
+        <div className="flex min-w-0 flex-1 flex-col pl-2.5 pr-3 pt-2.5">
+          <Link
+            to="/nft/$nftId"
+            params={{ nftId: item.nftId }}
+            className="truncate pr-6 text-[15px] font-bold leading-6 text-fg hover:text-accent-text"
+          >
+            {item.name}
+          </Link>
+          <p className="text-sm leading-5 text-fg-muted">
+            Edição: {item.editionLabel}
+          </p>
+          <p className="mt-auto pb-2.5 text-lg font-bold leading-7 text-accent-text">
+            <span data-testid="cart-item-price">
+              {formatEth(item.unitPrice)}
+            </span>
+            {priceIssue && (
+              <span className="ml-2 text-xs font-normal text-fg-muted line-through">
+                <span className="sr-only">Antes: </span>
+                {formatEth(priceIssue.from)}
+              </span>
+            )}
+          </p>
+        </div>
+        <QuantityStepper
+          variant="circle"
+          className="absolute right-4 top-1/2 -translate-y-1/2"
+          value={item.quantity}
+          max={max}
+          label={`Quantidade de ${item.name}`}
+          disabled={update.isPending || item.available === 0}
+          onChange={(quantity) => update.mutate({ itemId: item.id, quantity })}
+        />
+        <button
+          type="button"
+          aria-label={`Remover ${item.name} do carrinho`}
+          disabled={remove.isPending}
+          onClick={() => remove.mutate({ itemId: item.id, name: item.name })}
+          className="absolute right-3 top-2 flex size-7 items-center justify-center text-brand transition-colors hover:text-accent-text disabled:opacity-50"
+        >
+          <Trash2 className="size-4" strokeWidth={1.5} aria-hidden />
+        </button>
+      </div>
+      <RowNotices item={item} quote={quote} update={update} />
+    </li>
+  );
+}
+
+function CouponForm({
+  applied,
+  variant = "default",
+}: {
+  applied: string | null;
+  variant?: "default" | "mobile";
+}) {
   const [code, setCode] = useState("");
   const apply = useApplyCoupon();
   const remove = useRemoveCoupon();
@@ -194,7 +299,10 @@ function CouponForm({ applied }: { applied: string | null }) {
   if (applied) {
     return (
       <div
-        className="flex items-center justify-between rounded-lg border border-success/40 bg-success/10 px-3 py-2 text-sm"
+        className={cn(
+          "flex items-center justify-between border border-success/40 bg-success/10 px-3 py-2 text-sm",
+          variant === "mobile" ? "h-[50px] rounded-full pl-4" : "rounded-lg",
+        )}
         role="status"
       >
         <span className="flex items-center gap-2">
@@ -222,8 +330,38 @@ function CouponForm({ applied }: { applied: string | null }) {
       }}
       noValidate
     >
-      <Field label="Cupom de desconto" error={error}>
-        {(props) => (
+      <Field
+        label="Cupom de desconto"
+        error={error}
+        hideLabel={variant === "mobile"}
+      >
+        {(props) =>
+          variant === "mobile" ? (
+            // Figma: pílula de 50 px com o botão “Aplicar” encaixado à direita
+            <div className="shadow-card flex h-[50px] items-center rounded-full border border-line bg-surface focus-within:border-accent-text has-[[aria-invalid=true]]:border-danger">
+              <input
+                {...props}
+                value={code}
+                onChange={(e) => {
+                  setCode(e.target.value);
+                  if (apply.isError) apply.reset();
+                }}
+                placeholder="Digite o código promocional..."
+                autoComplete="off"
+                className={cn(
+                  "h-full min-w-0 flex-1 rounded-l-full bg-transparent pl-4 pr-2 text-sm text-fg placeholder:text-brand-secondary focus-visible:outline-none",
+                  code && "uppercase",
+                )}
+              />
+              <Button
+                type="submit"
+                loading={apply.isPending}
+                className="-mr-px h-[50px] w-[97px] shrink-0 rounded-full bg-[linear-gradient(96deg,rgb(210_138_76/0.54)_0%,var(--color-brand)_100%)] text-base font-bold normal-case tracking-normal text-fg hover:bg-[linear-gradient(96deg,rgb(210_138_76/0.7)_0%,var(--color-brand)_100%)]"
+              >
+                Aplicar
+              </Button>
+            </div>
+          ) : (
           <div className="flex gap-2">
             <Input
               {...props}
@@ -245,7 +383,8 @@ function CouponForm({ applied }: { applied: string | null }) {
               Aplicar
             </Button>
           </div>
-        )}
+          )
+        }
       </Field>
     </form>
   );
@@ -278,6 +417,116 @@ export function CartPage() {
   const navigate = useNavigate();
   const items = cart.data?.items ?? [];
   const blocking = quote.data && !quote.data.purchasable;
+  const isDesktop = useIsDesktop();
+
+  const emptyState = (
+    <EmptyState
+      icon={<ShoppingBag className="size-10" />}
+      title="Seu carrinho está vazio"
+      description="Explore o mercado e adicione NFTs para colecionar."
+      action={
+        <Button asChild>
+          <Link to="/">Explorar NFTs</Link>
+        </Button>
+      }
+    />
+  );
+  const couponNotice = quote.data?.issues.some(
+    (i) => i.type === "COUPON_EXPIRED" || i.type === "COUPON_INVALID",
+  ) && (
+    <Alert variant="danger" title="Cupom não é mais válido">
+      Remova o cupom para continuar.
+    </Alert>
+  );
+  const blockingNotice = blocking && (
+    <p className="text-sm text-danger" role="alert">
+      Resolva os avisos do carrinho para continuar.
+    </p>
+  );
+
+  // Frame mobile “Carrinho de NFTs”: lista de cards e resumo em painel inferior
+  if (!isDesktop) {
+    return (
+      <div className="flex min-h-dvh flex-col px-7">
+        <MobileTopBar title="Carrinho de NFTs" />
+        {cart.isPending ? (
+          <div
+            className="mt-5 flex flex-col gap-5"
+            aria-busy="true"
+            aria-label="Carregando carrinho"
+          >
+            {Array.from({ length: 2 }).map((_, i) => (
+              <Skeleton key={i} className="h-[100px] rounded-[14px]" />
+            ))}
+          </div>
+        ) : cart.isError ? (
+          <ErrorState
+            error={cart.error}
+            onRetry={() => void cart.refetch()}
+            title="Não foi possível carregar o carrinho"
+          />
+        ) : items.length === 0 ? (
+          emptyState
+        ) : (
+          <>
+            <section
+              aria-labelledby="cart-items-title"
+              className="mt-5 flex-1 pb-1"
+            >
+              <h2 id="cart-items-title" className="sr-only">
+                Itens do carrinho
+              </h2>
+              <ul className="flex flex-col gap-5">
+                {items.map((item) => (
+                  <MobileCartRow key={item.id} item={item} quote={quote.data} />
+                ))}
+              </ul>
+            </section>
+            <aside
+              aria-labelledby="summary-title"
+              className="-mx-7 flex flex-col gap-3 rounded-t-[40px] bg-surface px-6 pb-[calc(36px+env(safe-area-inset-bottom))] pt-6"
+            >
+              <h2 id="summary-title" className="sr-only">
+                Resumo do pedido
+              </h2>
+              <CouponForm applied={cart.data.couponCode} variant="mobile" />
+              <div aria-live="polite" aria-busy={quote.isFetching}>
+                {quote.data ? (
+                  <div
+                    className={
+                      quote.isFetching ? "opacity-60 transition-opacity" : ""
+                    }
+                  >
+                    <MobileSummaryRows quote={quote.data} />
+                  </div>
+                ) : quote.isError ? (
+                  <ErrorState
+                    error={quote.error}
+                    onRetry={() => void quote.refetch()}
+                    title="Falha ao calcular valores"
+                  />
+                ) : (
+                  <SummarySkeleton />
+                )}
+              </div>
+              {couponNotice}
+              {blockingNotice}
+              <Button
+                variant="gradient"
+                size="xl"
+                className="mt-4 w-full"
+                disabled={!quote.data || !!blocking}
+                onClick={() => navigate({ to: "/checkout" })}
+                data-testid="go-to-checkout"
+              >
+                Conectar e finalizar
+              </Button>
+            </aside>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="container-kurio flex flex-col gap-8 pt-8">
@@ -304,16 +553,7 @@ export function CartPage() {
           title="Não foi possível carregar o carrinho"
         />
       ) : items.length === 0 ? (
-        <EmptyState
-          icon={<ShoppingBag className="size-10" />}
-          title="Seu carrinho está vazio"
-          description="Explore o mercado e adicione NFTs para colecionar."
-          action={
-            <Button asChild>
-              <Link to="/">Explorar NFTs</Link>
-            </Button>
-          }
-        />
+        emptyState
       ) : (
         <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
           <section aria-labelledby="cart-items-title">
@@ -386,18 +626,8 @@ export function CartPage() {
                 <SummarySkeleton />
               )}
             </div>
-            {quote.data?.issues.some(
-              (i) => i.type === "COUPON_EXPIRED" || i.type === "COUPON_INVALID",
-            ) && (
-              <Alert variant="danger" title="Cupom não é mais válido">
-                Remova o cupom para continuar.
-              </Alert>
-            )}
-            {blocking && (
-              <p className="text-sm text-danger" role="alert">
-                Resolva os avisos do carrinho para continuar.
-              </p>
-            )}
+            {couponNotice}
+            {blockingNotice}
             <Button
               size="lg"
               disabled={!quote.data || !!blocking}

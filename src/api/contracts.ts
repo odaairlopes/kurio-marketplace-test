@@ -107,6 +107,8 @@ export interface NftSummary {
   listedAt: ISODate;
   isNew: boolean;
   trending: boolean;
+  /** Possui edição Artist Proof (tiragem mínima) — selo “Raro” no card */
+  rare: boolean;
   soldOut: boolean;
   version: number;
 }

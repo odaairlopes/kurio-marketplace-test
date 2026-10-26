@@ -1,5 +1,13 @@
 import type { Page } from "@playwright/test";
-import { addToCart, expect, gotoApp, login, test, USERS } from "./support";
+import {
+  addToCart,
+  expect,
+  gotoApp,
+  login,
+  openCart,
+  test,
+  USERS,
+} from "./support";
 
 async function prepareCheckout(page: Page) {
   await gotoApp(page, "/checkout");
@@ -17,6 +25,7 @@ test.describe("Compra", () => {
   test("@main compra completa do catálogo ao recibo confirmado", async ({
     page,
     mock,
+    isMobile,
   }) => {
     await login(page, USERS.ana);
     await gotoApp(page, "/");
@@ -26,7 +35,7 @@ test.describe("Compra", () => {
       .click();
     await page.getByTestId("add-to-cart").click();
     await expect(page.getByText("Adicionado!")).toBeVisible();
-    await page.getByTestId("header-cart").click();
+    await openCart(page, isMobile);
     await page.getByTestId("go-to-checkout").click();
     await expect(page).toHaveURL("/checkout");
 

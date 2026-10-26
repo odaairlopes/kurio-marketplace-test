@@ -16,11 +16,15 @@ export const buttonVariants = cva(
         ghost: "text-fg hover:bg-surface hover:text-accent-text",
         link: "text-accent-text underline-offset-4 hover:underline normal-case tracking-normal",
         danger: "border border-danger/60 text-danger hover:bg-danger/10",
+        /** Botão principal dos frames mobile (pílula com gradiente da marca) */
+        gradient:
+          "bg-brand-gradient rounded-full font-bold normal-case tracking-normal text-ink hover:brightness-110",
       },
       size: {
         default: "h-10 px-4 text-sm",
         sm: "h-8 px-3 text-xs",
         lg: "h-12 px-6 text-sm",
+        xl: "h-15 px-6 text-base",
         icon: "size-10",
         "icon-sm": "size-8",
       },

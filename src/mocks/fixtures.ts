@@ -119,34 +119,81 @@ const DESCRIPTIONS: Record<CollectionId, string> = {
     "Token de utilidade com acesso a eventos, drops antecipados e benefícios da comunidade.",
 };
 
-/** NFTs do layout do Figma — preservados com os mesmos nomes e preços. */
+/** Artes dos macacos do Figma (public/nft, geradas por scripts/build-artwork.mjs). */
+const ARTWORK = ["glasses", "hat", "turtleneck", "headphones"] as const;
+type Artwork = (typeof ARTWORK)[number];
+
+/** NFTs do layout do Figma — preservados com os mesmos nomes, preços e artes. */
 const FIGMA_FIXED: Array<{
   name: string;
   price: string;
   previous?: string;
   collection: CollectionId;
+  art: Artwork;
 }> = [
-  { name: "Emerald Ape #042", price: "1.19", collection: "arte-digital" },
-  { name: "Sage Nomad #009", price: "1.69", collection: "arte-digital" },
+  {
+    name: "Emerald Ape #042",
+    price: "1.19",
+    collection: "arte-digital",
+    art: "glasses",
+  },
+  {
+    name: "Sage Nomad #009",
+    price: "1.69",
+    collection: "arte-digital",
+    art: "hat",
+  },
   {
     name: "Neon Vessel #552",
     price: "1.99",
     previous: "2.29",
     collection: "generativa",
+    art: "turtleneck",
   },
-  { name: "Cosmic Bloom #118", price: "1.29", collection: "arte-3d" },
-  { name: "Violet Nomad #314", price: "1.39", collection: "colecionaveis" },
-  { name: "Ivory Baron #088", price: "1.79", collection: "fotografia" },
-  { name: "Golden Beat #207", price: "0.99", collection: "musica" },
-  { name: "Golden Echo #183", price: "0.69", collection: "jogos" },
-  { name: "Golden Signal #160", price: "0.39", collection: "utilidade" },
+  {
+    name: "Cosmic Bloom #118",
+    price: "1.29",
+    collection: "arte-3d",
+    art: "headphones",
+  },
+  {
+    name: "Violet Nomad #314",
+    price: "1.39",
+    collection: "colecionaveis",
+    art: "hat",
+  },
+  {
+    name: "Ivory Baron #088",
+    price: "1.79",
+    collection: "fotografia",
+    art: "turtleneck",
+  },
+  {
+    name: "Golden Beat #207",
+    price: "0.99",
+    collection: "musica",
+    art: "headphones",
+  },
+  {
+    name: "Golden Echo #183",
+    price: "0.69",
+    collection: "jogos",
+    art: "headphones",
+  },
+  {
+    name: "Golden Signal #160",
+    price: "0.39",
+    collection: "utilidade",
+    art: "headphones",
+  },
 ];
 
-const ART_COUNT = 24;
-
-function art(n: number) {
-  const id = String(((n - 1) % ART_COUNT) + 1).padStart(2, "0");
-  return `/nft/art-${id}.webp`;
+/** Galeria: a arte principal primeiro, seguida das demais na ordem fixa. */
+function gallery(main: Artwork) {
+  const start = ARTWORK.indexOf(main);
+  return ARTWORK.map(
+    (_, k) => `/nft/ape-${ARTWORK[(start + k) % ARTWORK.length]}.webp`,
+  );
 }
 
 function hex(rand: () => number, length: number) {
@@ -226,7 +273,7 @@ export function buildNfts(): NftRecord[] {
     }
 
     const tokenNumber = name.match(/#(\d+)/)?.[1] ?? String(i);
-    const images = [0, 1, 2, 3].map((k) => art(i + 1 + k * 5));
+    const images = gallery(fixed?.art ?? ARTWORK[i % ARTWORK.length]);
     const ratingCount = 3 + Math.floor(rand() * 60);
 
     nfts.push({

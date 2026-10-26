@@ -6,14 +6,17 @@ import { useEffect, useState } from "react";
 import type { NftDetail } from "@/api/contracts";
 import { ApiError } from "@/api/http";
 import { FavoriteButton } from "@/components/catalog/NftCard";
+import { BackButton } from "@/components/mobile/MobileTopBar";
+import { MobileNftView } from "@/components/nft/MobileNftView";
+import { quantityHint, usePurchase } from "@/components/nft/usePurchase";
 import { QuantityStepper } from "@/components/QuantityStepper";
 import { ErrorState, NotFound } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/controls";
 import { Alert, Badge, Skeleton } from "@/components/ui/misc";
 import { formatEth } from "@/lib/money";
+import { useIsDesktop } from "@/lib/useMediaQuery";
 import { cn, COLLECTION_LABEL, NETWORK_LABEL, shortAddress } from "@/lib/utils";
-import { useAddToCart, useCart } from "@/queries/cart";
 import { nftQuery } from "@/queries/catalog";
 import { useRealtime } from "@/realtime/RealtimeProvider";
 
@@ -93,29 +96,9 @@ function Rating({ average, count }: { average: number; count: number }) {
 }
 
 function PurchasePanel({ nft }: { nft: NftDetail }) {
-  const cart = useCart();
-  const addToCart = useAddToCart();
-  const firstAvailable =
-    nft.editions.find((e) => e.available > 0) ?? nft.editions[0];
-  const [editionId, setEditionId] = useState(firstAvailable.id);
-  const [quantity, setQuantity] = useState(1);
-  const edition =
-    nft.editions.find((e) => e.id === editionId) ?? firstAvailable;
-  const inCart =
-    cart.data?.items.find(
-      (i) => i.nftId === nft.id && i.editionId === edition.id,
-    )?.quantity ?? 0;
-  const limit = Math.max(
-    0,
-    Math.min(edition.available, edition.maxPerOrder) - inCart,
-  );
-  const unavailable = edition.available === 0;
-
-  useEffect(() => {
-    if (quantity > Math.max(1, limit)) setQuantity(Math.max(1, limit));
-  }, [limit, quantity]);
-
-  const conflict = addToCart.error instanceof ApiError ? addToCart.error : null;
+  const purchase = usePurchase(nft);
+  const { edition, quantity, setQuantity, limit, unavailable, conflict } =
+    purchase;
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,11 +106,7 @@ function PurchasePanel({ nft }: { nft: NftDetail }) {
         <legend className="mb-3 font-bold">Edição</legend>
         <RadioGroup
           value={edition.id}
-          onValueChange={(v) => {
-            setEditionId(v);
-            setQuantity(1);
-            addToCart.reset();
-          }}
+          onValueChange={purchase.selectEdition}
           className="grid-cols-[minmax(0,1fr)] gap-2"
         >
           {nft.editions.map((e) => (
@@ -177,24 +156,15 @@ function PurchasePanel({ nft }: { nft: NftDetail }) {
               disabled={limit === 0}
             />
             <p className="text-sm text-fg-muted" id="qty-hint">
-              {limit === 0
-                ? "Você já tem o máximo permitido desta edição no carrinho."
-                : `Até ${limit} ${limit === 1 ? "unidade" : "unidades"}${inCart ? ` (já há ${inCart} no carrinho)` : ""}`}
+              {quantityHint(purchase)}
             </p>
           </div>
           <Button
             size="lg"
             disabled={limit === 0}
-            loading={addToCart.isPending}
+            loading={purchase.adding}
             aria-describedby="qty-hint"
-            onClick={() =>
-              addToCart.mutate({
-                nftId: nft.id,
-                editionId: edition.id,
-                quantity,
-                name: nft.name,
-              })
-            }
+            onClick={() => purchase.add()}
             data-testid="add-to-cart"
           >
             <ShoppingBag aria-hidden /> Adicionar ao carrinho ·{" "}
@@ -205,7 +175,7 @@ function PurchasePanel({ nft }: { nft: NftDetail }) {
               {conflict.message}
             </p>
           )}
-          {addToCart.isSuccess && (
+          {purchase.added && (
             <p role="status" className="text-sm text-success">
               Adicionado!{" "}
               <Link to="/cart" className="underline">
@@ -250,6 +220,7 @@ export function NftPage() {
   const nft = useQuery(nftQuery(nftId));
   const { lastNftChange } = useRealtime();
   const change = lastNftChange[nftId];
+  const isDesktop = useIsDesktop();
 
   useEffect(() => {
     if (nft.data) document.title = `${nft.data.name} — KURIO`;
@@ -264,6 +235,31 @@ export function NftPage() {
         title="NFT não encontrado"
         description="Este NFT não existe, foi removido ou o endereço está incorreto."
       />
+    );
+  }
+
+  if (!isDesktop) {
+    if (nft.data)
+      return (
+        <MobileNftView
+          key={nft.data.id}
+          nft={nft.data}
+          notice={change?.message}
+        />
+      );
+    return (
+      <div className="container-kurio flex flex-col gap-6 pt-[23px]">
+        <BackButton />
+        {nft.isError ? (
+          <ErrorState error={nft.error} onRetry={() => void nft.refetch()} />
+        ) : (
+          <div aria-busy="true" aria-label="Carregando NFT" className="flex flex-col gap-4">
+            <Skeleton className="aspect-[361/356] w-full rounded-3xl" />
+            <Skeleton className="h-7 w-3/4" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        )}
+      </div>
     );
   }
 

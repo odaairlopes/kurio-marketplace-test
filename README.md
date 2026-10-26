@@ -43,7 +43,7 @@ Nenhum serviço externo é necessário: todas as APIs, sessões, carteiras, paga
 | `npm run test:e2e:update`  | Regera as baselines de regressão visual                             |
 | `npm run test:report`      | Abre o relatório HTML do último run (`playwright-report/`)          |
 | `npm run lighthouse`       | Build + auditoria Lighthouse (3 medições por página/perfil)         |
-| `npm run generate:artwork` | Regera as artes dos NFTs (`public/nft/`)                            |
+| `npm run build:artwork`    | Gera as artes dos NFTs (`public/nft/`) a partir de `artwork/`         |
 
 ## Variáveis de ambiente
 
@@ -68,7 +68,7 @@ Senhas são armazenadas apenas como `sha256(salt:senha)` no estado simulado. Cup
 
 ### Painel “Cenários”
 
-Botão flutuante **Cenários** (canto inferior esquerdo, também no deploy). Tudo passa pelos endpoints `/api/__dev/*` do MSW — nada é injetado direto na UI ou no cache:
+Botão flutuante **Cenários**, oculto por padrão para não interferir no layout do Figma. Para exibi-lo (também no deploy), abra qualquer página com `?cenarios=1`, ex.: `/?cenarios=1`; a escolha fica salva no navegador, e `?cenarios=0` volta a ocultar. Fica no canto inferior esquerdo no desktop e como aba na borda direita no mobile. Tudo passa pelos endpoints `/api/__dev/*` do MSW — nada é injetado direto na UI ou no cache:
 
 - **Presets**: padrão, rápido, lento, respostas fora de ordem, catálogo vazio, catálogo com erro 500, sem conexão, pagamento recusado, carteira recusa conexão, timeout após criar pedido, favoritos falham, sessão de 1 minuto.
 - **Ajustes**: latência (nenhuma/rápida/realista/lenta/fora de ordem), pagamento (aprovar/recusar), carteira (aceita/recusa), catálogo (padrão/vazio).
@@ -81,7 +81,7 @@ Botão flutuante **Cenários** (canto inferior esquerdo, também no deploy). Tud
 
 ### Reset
 
-- Painel → **Resetar todos os dados**, ou
+- Painel (`?cenarios=1`) → **Resetar todos os dados**, ou
 - `fetch('/api/__dev/reset', { method: 'POST' })` no console, ou
 - limpar o `localStorage` do site (o estado simulado vive em `kurio.mock.db` e o cenário em `kurio.mock.scenario`).
 

@@ -15,7 +15,7 @@
     "test:e2e:update": "playwright test --update-snapshots",
     "test:report": "playwright show-report",
     "lighthouse": "npm run build && node scripts/lighthouse.mjs",
-    "generate:artwork": "node scripts/generate-artwork.mjs"
+    "build:artwork": "node scripts/build-artwork.mjs"
   },
   "dependencies": {
     "@fontsource/roboto-mono": "^5.3.0",

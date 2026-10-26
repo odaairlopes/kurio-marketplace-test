@@ -25,25 +25,39 @@ interface FieldProps {
   error?: string;
   hint?: string;
   className?: string;
+  /** Label e dica só para leitores de tela (campos com placeholder dos frames mobile). */
+  hideLabel?: boolean;
   children: (props: FieldControlProps) => React.ReactNode;
 }
 
 /** Associa label, dica e mensagem de erro ao controle (aria-describedby / aria-invalid). */
-export function Field({ label, error, hint, className, children }: FieldProps) {
+export function Field({
+  label,
+  error,
+  hint,
+  className,
+  hideLabel,
+  children,
+}: FieldProps) {
   const id = React.useId();
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className={cn(hideLabel && "sr-only")}>
+        {label}
+      </Label>
       {children({
         id,
         "aria-invalid": !!error,
         "aria-describedby": describedBy,
       })}
       {hint && (
-        <p id={hintId} className="text-xs text-fg-muted">
+        <p
+          id={hintId}
+          className={cn("text-xs text-fg-muted", hideLabel && "sr-only")}
+        >
           {hint}
         </p>
       )}

@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { expect, gotoApp, login, test, USERS } from "./support";
 
 const IMAGE = readFileSync(
-  new URL("../../public/nft/art-03-sm.webp", import.meta.url),
+  new URL("../../public/nft/ape-glasses-sm.webp", import.meta.url),
 );
 
 test.describe("Perfil e carteiras", () => {

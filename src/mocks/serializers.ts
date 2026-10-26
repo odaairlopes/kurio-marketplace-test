@@ -43,6 +43,7 @@ export function toSummary(nft: NftRecord): NftSummary {
     listedAt: nft.listedAt,
     isNew: nft.isNew,
     trending: nft.trending,
+    rare: nft.editions.some((e) => e.id === "ap"),
     soldOut: nft.editions.every((e) => e.available === 0),
     version: nft.version,
   };

@@ -5,7 +5,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  SlidersHorizontal,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,7 +20,9 @@ import { Filters, type FilterState } from "@/components/catalog/Filters";
 import { NftCard, NftCardSkeleton } from "@/components/catalog/NftCard";
 import { EmptyState, ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icon";
+import { Input, NativeSelect } from "@/components/ui/input";
 import { Badge, Skeleton } from "@/components/ui/misc";
 import {
   Select,
@@ -63,18 +64,122 @@ const TAB_LABEL: Record<CatalogTab, string> = {
 
 const HERO_SLIDES = [
   {
-    image: "/nft/hero.webp",
+    art: "glasses",
     alt: "Macaco de óculos redondos e jaqueta esportiva verde, em retrato ilustrado",
   },
   {
-    image: "/nft/hero-2.webp",
+    art: "hat",
     alt: "Gorila de chapéu bucket verde e moletom roxo, em retrato ilustrado",
   },
   {
-    image: "/nft/hero-3.webp",
+    art: "turtleneck",
     alt: "Chimpanzé de blazer bege e gola alta verde, em retrato ilustrado",
   },
 ];
+
+/** srcset da arte do hero (400 px para o card mobile, 800 px para desktop/telas 2x). */
+function heroSrc(art: string) {
+  return {
+    src: `/nft/ape-${art}.webp`,
+    srcSet: `/nft/ape-${art}-sm.webp 400w, /nft/ape-${art}.webp 800w`,
+  };
+}
+
+function HeroDots({
+  slide,
+  onSelect,
+  className,
+}: {
+  slide: number;
+  onSelect: (i: number) => void;
+  className?: string;
+}) {
+  return (
+    <div className={className} role="group" aria-label="Destaques">
+      {HERO_SLIDES.map((s, i) => (
+        <button
+          key={s.art}
+          type="button"
+          aria-label={`Mostrar destaque ${i + 1} de ${HERO_SLIDES.length}`}
+          aria-pressed={slide === i}
+          onClick={() => onSelect(i)}
+          className="flex size-5 items-center justify-center"
+        >
+          <span
+            className={cn(
+              "size-2 rounded-full bg-brand transition-opacity",
+              slide === i ? "opacity-100" : "opacity-55",
+            )}
+          />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** Hero do frame mobile: card com gradiente, arte principal e miniatura sobreposta. */
+function MobileHero() {
+  const [slide, setSlide] = useState(0);
+  const current = HERO_SLIDES[slide];
+  const next = HERO_SLIDES[(slide + 1) % HERO_SLIDES.length];
+  return (
+    <section
+      aria-labelledby="hero-title"
+      className="relative h-[190px] overflow-hidden rounded-[30px] bg-[linear-gradient(153deg,rgb(210_138_76/0.2)_0%,rgb(210_138_76/0.1)_100%)]"
+    >
+      <span
+        aria-hidden
+        className="absolute left-[-80px] top-[-31px] size-62 rounded-full bg-[linear-gradient(160deg,rgb(221_154_95/0.43)_0%,rgb(210_138_76/0.04)_100%)]"
+      />
+      <span
+        aria-hidden
+        className="absolute left-[73px] top-[-10px] size-62 rounded-full bg-[linear-gradient(160deg,rgb(221_154_95/0.37)_0%,rgb(210_138_76/0)_100%)]"
+      />
+      <div className="relative flex h-full flex-col pl-4 pt-1 pr-[160px]">
+        <p className="text-xs leading-5 text-fg">Bem-vindo à Kurio</p>
+        <h1
+          id="hero-title"
+          className="mt-0.5 text-lg font-bold uppercase leading-[29px] text-fg"
+        >
+          Seja dono da cultura digital
+        </h1>
+        <p className="mt-1.5 text-xs leading-[18px] text-fg-muted">
+          Descubra NFTs selecionados de criadores do mundo todo.
+        </p>
+        <button
+          type="button"
+          onClick={scrollToCatalog}
+          className="flex items-center gap-2.5 self-start text-xs font-bold uppercase leading-5 text-accent-text"
+        >
+          Explorar
+          <ArrowRight className="size-4 text-brand" strokeWidth={1.5} aria-hidden />
+        </button>
+      </div>
+      <img
+        {...heroSrc(current.art)}
+        sizes="138px"
+        alt={current.alt}
+        width={138}
+        height={138}
+        fetchPriority="high"
+        className="absolute right-4 top-2.5 size-[138px] rounded-2xl object-cover"
+      />
+      <img
+        {...heroSrc(next.art)}
+        sizes="58px"
+        alt=""
+        width={58}
+        height={58}
+        className="absolute right-[82px] top-[98.5px] size-[58px] rounded-2xl object-cover"
+      />
+      <HeroDots
+        slide={slide}
+        onSelect={setSlide}
+        className="absolute inset-x-0 bottom-0 flex h-5 justify-center -space-x-1.5"
+      />
+    </section>
+  );
+}
 
 function splitList<T extends string>(
   value: string | undefined,
@@ -118,12 +223,9 @@ function Hero() {
           </p>
           <h1
             id="hero-title"
-            className="mt-1.5 max-w-130 text-[28px] font-bold uppercase leading-tight text-fg-strong md:text-display md:leading-17.5"
+            className="mt-1.5 max-w-130 text-display font-bold uppercase leading-17.5 text-fg-strong"
           >
-            <span className="md:hidden">Own digital culture</span>
-            <span className="hidden md:inline">
-              Seja dono do futuro da arte digital
-            </span>
+            Seja dono do futuro da arte digital
           </h1>
           <p className="mt-[3px] max-w-140 text-sm leading-6 text-fg-muted">
             Descubra NFTs selecionados de criadores emergentes e consagrados.
@@ -137,9 +239,10 @@ function Hero() {
             Explorar
           </Button>
         </div>
-        <div className="relative mx-auto w-full max-w-60 md:max-w-112.5 lg:mx-0 lg:justify-self-end">
+        <div className="relative mx-auto w-full max-w-112.5 lg:mx-0 lg:justify-self-end">
           <img
-            src={HERO_SLIDES[slide].image}
+            {...heroSrc(HERO_SLIDES[slide].art)}
+            sizes="450px"
             alt={HERO_SLIDES[slide].alt}
             width={450}
             height={450}
@@ -148,29 +251,11 @@ function Hero() {
           />
         </div>
       </div>
-      <div
+      <HeroDots
+        slide={slide}
+        onSelect={setSlide}
         className="mt-6 flex justify-center gap-0.5 lg:absolute lg:left-146 lg:top-[392px] lg:mt-0 lg:justify-start"
-        role="group"
-        aria-label="Destaques"
-      >
-        {HERO_SLIDES.map((s, i) => (
-          <button
-            key={s.image}
-            type="button"
-            aria-label={`Mostrar destaque ${i + 1} de ${HERO_SLIDES.length}`}
-            aria-pressed={slide === i}
-            onClick={() => setSlide(i)}
-            className="flex size-5 items-center justify-center"
-          >
-            <span
-              className={cn(
-                "size-2 rounded-full bg-brand transition-opacity",
-                slide === i ? "opacity-100" : "opacity-55",
-              )}
-            />
-          </button>
-        ))}
-      </div>
+      />
     </section>
   );
 }
@@ -222,9 +307,11 @@ function FeaturedBanner() {
 function SearchBox({
   value,
   onChange,
+  className,
 }: {
   value: string;
   onChange: (q: string) => void;
+  className?: string;
 }) {
   const [draft, setDraft] = useState(value);
   const last = useRef(value);
@@ -251,22 +338,23 @@ function SearchBox({
         last.current = draft;
         onChange(draft);
       }}
-      className="relative"
+      className={cn("relative", className)}
     >
       <label htmlFor="catalog-search" className="sr-only">
         Buscar NFTs por nome, criador ou token
       </label>
       <Search
-        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-fg-muted"
+        className="pointer-events-none absolute left-3.5 top-1/2 size-5.5 -translate-y-1/2 text-brand-secondary"
+        strokeWidth={1.75}
         aria-hidden
       />
       <Input
         id="catalog-search"
         type="search"
-        placeholder="Buscar NFTs, criadores…"
+        placeholder="Explorar coleções"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
-        className="pl-9"
+        className="h-[45px] rounded-[10px] border-transparent bg-surface pl-12 text-sm placeholder:text-brand-secondary"
         autoComplete="off"
       />
     </form>
@@ -564,58 +652,85 @@ export function HomePage() {
   const data = catalog.data;
   const isUpdating = catalog.isFetching && catalog.isPlaceholderData;
 
+  const setSort = (sort: string) =>
+    setSearch({
+      sort: sort === "recent" ? undefined : (sort as SortOption),
+    });
+
+  const gridClass = isDesktop
+    ? "grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-3 lg:gap-x-8.5 lg:gap-y-16"
+    : // Mobile (Figma): grade em “alvenaria”, 2ª coluna deslocada 32 px
+      "grid grid-cols-2 gap-x-4 gap-y-6 pb-8 [&>li:nth-child(even)]:translate-y-8";
+
   return (
-    <div className="container-kurio flex flex-col gap-10 pt-6 md:gap-24 lg:pt-8.25">
-      {/* Mobile: busca acima do hero, como no frame mobile */}
+    <div className="container-kurio flex flex-col gap-4 pt-10 md:gap-24 md:pt-6 lg:pt-8.25">
+      {/* Mobile: busca + botão de filtros acima do hero, como no frame mobile */}
       {!isDesktop && (
-        <SearchBox
-          value={query.q ?? ""}
-          onChange={(q) => setSearch({ q: q || undefined }, true)}
-        />
+        <div className="flex gap-2">
+          <SearchBox
+            className="flex-1"
+            value={query.q ?? ""}
+            onChange={(q) => setSearch({ q: q || undefined }, true)}
+          />
+          <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                aria-label={`Filtros${filterCount ? `, ${filterCount} ativos` : ""}`}
+                className="relative flex size-[45px] shrink-0 items-center justify-center rounded-[14px] bg-[linear-gradient(133deg,rgb(210_138_76/0.45)_0%,var(--color-brand)_100%)] text-ink transition hover:brightness-110"
+              >
+                <Icon name="mobile-filter" className="size-5.5" />
+                {filterCount > 0 && (
+                  <Badge className="absolute -right-1.5 -top-1.5 min-w-5 justify-center px-1">
+                    {filterCount}
+                  </Badge>
+                )}
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom">
+              <SheetTitle className="text-lg font-bold">Filtros</SheetTitle>
+              <SheetDescription className="sr-only">
+                Filtre e ordene o catálogo por coleção, preço e rede.
+              </SheetDescription>
+              <Field label="Ordenar por">
+                {(props) => (
+                  <NativeSelect
+                    {...props}
+                    value={query.sort}
+                    onChange={(e) => setSort(e.target.value)}
+                  >
+                    {(Object.keys(SORT_LABEL) as SortOption[]).map((s) => (
+                      <option key={s} value={s}>
+                        {SORT_LABEL[s]}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </Field>
+              <Filters
+                value={filterState}
+                facets={data?.facets}
+                onChange={applyFilters}
+                idPrefix="mf"
+              />
+              <Button onClick={() => setFiltersOpen(false)}>
+                Ver {data?.total ?? ""} resultados
+              </Button>
+            </SheetContent>
+          </Sheet>
+        </div>
       )}
 
-      <Hero />
+      {isDesktop ? <Hero /> : <MobileHero />}
 
       <section
         id="catalogo"
         aria-labelledby="catalog-title"
-        className="scroll-mt-6"
+        className="scroll-mt-6 max-md:-mt-[7px]"
       >
         <h2 id="catalog-title" className="sr-only">
           Catálogo
         </h2>
-        {!isDesktop && (
-          <div className="mb-6 flex items-center justify-between gap-4">
-            <h2 className="text-xl font-bold">Explorar coleções</h2>
-            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label={`Filtros${filterCount ? `, ${filterCount} ativos` : ""}`}
-                >
-                  <SlidersHorizontal aria-hidden /> Filtros{" "}
-                  {filterCount > 0 && <Badge>{filterCount}</Badge>}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom">
-                <SheetTitle className="text-lg font-bold">Filtros</SheetTitle>
-                <SheetDescription className="sr-only">
-                  Filtre o catálogo por coleção, preço e rede.
-                </SheetDescription>
-                <Filters
-                  value={filterState}
-                  facets={data?.facets}
-                  onChange={applyFilters}
-                  idPrefix="mf"
-                />
-                <Button onClick={() => setFiltersOpen(false)}>
-                  Ver {data?.total ?? ""} resultados
-                </Button>
-              </SheetContent>
-            </Sheet>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 gap-8 md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[310px_minmax(0,1fr)] lg:gap-12">
           {isDesktop && (
@@ -640,9 +755,9 @@ export function HomePage() {
               <div
                 role="group"
                 aria-label="Seções do catálogo"
-                className="flex max-w-full items-center gap-5 overflow-x-auto"
+                className="flex max-w-full items-center gap-5 overflow-x-auto max-md:gap-0"
               >
-                {(Object.keys(TAB_LABEL) as CatalogTab[]).map((tab) => {
+                {(Object.keys(TAB_LABEL) as CatalogTab[]).map((tab, i) => {
                   const active = query.tab === tab;
                   return (
                     <button
@@ -654,8 +769,12 @@ export function HomePage() {
                       }
                       className={cn(
                         "relative h-10 whitespace-nowrap text-[15px] transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:rounded-full hover:text-accent-text",
+                        // Mobile (Figma): 14 px, espaçamentos 5 px e 16 px entre as abas
+                        "max-md:h-[27px] max-md:text-sm max-md:after:rounded-none",
+                        i === 1 && "max-md:ml-[5px]",
+                        i === 2 && "max-md:ml-4",
                         active
-                          ? "text-accent-text after:bg-accent-text"
+                          ? "text-accent-text after:bg-accent-text max-md:after:bg-brand"
                           : "text-fg after:bg-transparent",
                       )}
                     >
@@ -664,19 +783,11 @@ export function HomePage() {
                   );
                 })}
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center max-md:hidden">
                 <span className="text-[15px] text-fg" id="sort-label">
                   Ordenar por:
                 </span>
-                <Select
-                  value={query.sort}
-                  onValueChange={(sort) =>
-                    setSearch({
-                      sort:
-                        sort === "recent" ? undefined : (sort as SortOption),
-                    })
-                  }
-                >
+                <Select value={query.sort} onValueChange={setSort}>
                   <SelectTrigger
                     className="h-10 w-auto gap-0.5 border-none bg-transparent px-0 text-[15px] font-normal text-fg"
                     aria-labelledby="sort-label"
@@ -735,16 +846,18 @@ export function HomePage() {
               )}
             </div>
 
-            <div className="mt-2.5">
+            <div className="mt-2.5 max-md:mt-4">
               {catalog.isPending ? (
                 <ul
-                  className="grid grid-cols-2 gap-x-4 gap-y-8 md:gap-x-6 lg:grid-cols-3 lg:gap-x-8.5 lg:gap-y-16"
+                  className={gridClass}
                   aria-busy="true"
                   aria-label="Carregando catálogo"
                 >
                   {Array.from({ length: CATALOG_PAGE_SIZE }).map((_, i) => (
                     <li key={i}>
-                      <NftCardSkeleton />
+                      <NftCardSkeleton
+                        variant={isDesktop ? "default" : "mobile"}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -786,14 +899,19 @@ export function HomePage() {
                   )}
                   <ul
                     className={cn(
-                      "grid grid-cols-2 gap-x-4 gap-y-8 transition-opacity md:gap-x-6 lg:grid-cols-3 lg:gap-x-8.5 lg:gap-y-16",
+                      gridClass,
+                      "transition-opacity",
                       isUpdating && "opacity-60",
                     )}
                     aria-busy={isUpdating}
                   >
                     {data?.items.map((nft, i) => (
                       <li key={nft.id}>
-                        <NftCard nft={nft} priority={i < 3} />
+                        <NftCard
+                          nft={nft}
+                          priority={i < 3}
+                          variant={isDesktop ? "default" : "mobile"}
+                        />
                       </li>
                     ))}
                   </ul>

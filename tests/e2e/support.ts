@@ -129,6 +129,16 @@ export async function login(
   await expect(dialog).toBeHidden();
 }
 
+/**
+ * Abre o carrinho após adicionar um item: pelo header no desktop; no mobile o
+ * detalhe não tem header (frame do Figma), então usa o link do aviso “Adicionado!”.
+ */
+export async function openCart(page: Page, isMobile: boolean) {
+  if (isMobile)
+    await page.getByRole("link", { name: "Ir para o carrinho" }).click();
+  else await page.getByTestId("header-cart").click();
+}
+
 export async function addToCart(page: Page, nftId: string, quantity = 1) {
   await gotoApp(page, `/nft/${nftId}`);
   const stepper = page.getByRole("spinbutton", { name: /Quantidade/ });

@@ -4,6 +4,10 @@ import { cn } from "@/lib/utils";
 const base =
   "w-full rounded-md border border-input bg-ink px-3 text-sm text-fg placeholder:text-fg-muted/70 transition-colors focus-visible:border-accent-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-50 aria-[invalid=true]:border-danger";
 
+/** Campo dos frames mobile do Figma: 50 px, raio 10, borda #3F2319, placeholder #B39463. */
+export const FIGMA_INPUT =
+  "h-[50px] rounded-[10px] border-line bg-transparent px-4 text-[15px] placeholder:text-brand-secondary focus-visible:border-brand focus-visible:ring-0";
+
 export const Input = React.forwardRef<
   HTMLInputElement,
   React.InputHTMLAttributes<HTMLInputElement>
